@@ -110,7 +110,7 @@ export function AppShell() {
             <RSVPForm
               onSuccess={async () => {
                 await loadAttendees();
-                setActiveTab('admin');
+                setActiveTab('checkin');
               }}
             />
           </TabsContent>

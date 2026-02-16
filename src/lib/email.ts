@@ -49,7 +49,7 @@ export async function sendQRCodeEmail(
       filename: 'qrcode.png',
       content: attachmentContent,
       contentType: 'image/png' as const,
-      inlineContentId: QR_CID,
+      contentId: QR_CID,
     },
   ];
 
@@ -70,7 +70,10 @@ export async function sendQRCodeEmail(
           .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
           .qr-container { text-align: center; margin: 20px 0; }
           .qr-code { border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px; background: white; }
-          .check-in-note { font-size: 1.1em; color: #d63a2e; margin: 12px 0 4px; }
+          .check-in-note { font-size: 1.1em; color: #d63a2e; margin: 12px 0 8px; }
+          .instructions { text-align: left; margin-top: 16px; padding: 16px; background: white; border-radius: 8px; }
+          .instructions ol { margin: 8px 0 0 16px; padding: 0; }
+          .instructions li { margin-bottom: 8px; }
           .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
           .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
         </style>
@@ -82,8 +85,16 @@ export async function sendQRCodeEmail(
           <p>Thank you for registering — we're excited to have you! Your unique QR code is below.</p>
           <div class="qr-container">
             <img src="cid:${QR_CID}" alt="Your QR Code" class="qr-code" />
-            <p class="check-in-note"><strong>Scan this at check-in.</strong></p>
-            <p><em>Show this code on your phone when you arrive.</em></p>
+            <p class="check-in-note"><strong>Your check-in QR code</strong></p>
+            <div class="instructions">
+              <p><strong>How to check in at the event:</strong></p>
+              <ol>
+                <li><strong>Save this email</strong> — Keep it in your inbox or take a screenshot so you can access it offline.</li>
+                <li><strong>When you arrive</strong> — Open this email on your phone and scroll to the QR code above.</li>
+                <li><strong>Show the code</strong> — A staff member will scan your QR code to check you in. Hold your phone steady and make sure the screen is bright enough to read.</li>
+              </ol>
+              <p>No need to print — your phone screen works perfectly.</p>
+            </div>
           </div>
           <div class="details">
             <h3>Registration Details:</h3>

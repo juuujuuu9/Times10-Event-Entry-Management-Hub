@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, X, RotateCcw, CheckCircle2, QrCode } from 'lucide-react';
+import { Camera, X, RotateCcw, CheckCircle2, QrCode, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CheckInResult } from '@/types/attendee';
 import { apiService } from '@/services/api';
@@ -22,6 +22,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<CheckInResult | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [copyFlash, setCopyFlash] = useState(false);
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCodeRef = useRef<{ stop: () => Promise<void> } | null>(null);
 
@@ -108,37 +109,62 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
     </div>
   );
 
+  const copyMobileScannerLink = async () => {
+    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/scanner`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopyFlash(true);
+      setTimeout(() => setCopyFlash(false), 300);
+      toast.success('Copied! Open this link on a mobile device for mobile scanning.');
+    } catch {
+      toast.error('Could not copy link.');
+    }
+  };
+
   const buttons = (
-    <div className="flex gap-2">
-      {!scanning ? (
-        <Button
-          onClick={startScanning}
-          className="flex-1"
-          size={standalone ? 'lg' : 'default'}
-        >
-          <Camera className="h-4 w-4 mr-2" />
-          {standalone ? 'Start Scanner' : 'Start Scanning'}
-        </Button>
-      ) : (
-        <Button
-          onClick={stopScanning}
-          variant="destructive"
-          className="flex-1"
-          size={standalone ? 'lg' : 'default'}
-        >
-          <X className="h-4 w-4 mr-2" />
-          Stop Scanning
-        </Button>
-      )}
-      {!standalone && (
-        <Button
-          onClick={() => setScanResult(null)}
-          variant="outline"
-          disabled={scanning}
-        >
-          <RotateCcw className="h-4 w-4" />
-        </Button>
-      )}
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        {!scanning ? (
+          <Button
+            onClick={startScanning}
+            className="flex-1"
+            size={standalone ? 'lg' : 'default'}
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            {standalone ? 'Start Scanner' : 'Start Scanning'}
+          </Button>
+        ) : (
+          <Button
+            onClick={stopScanning}
+            variant="destructive"
+            className="flex-1"
+            size={standalone ? 'lg' : 'default'}
+          >
+            <X className="h-4 w-4 mr-2" />
+            Stop Scanning
+          </Button>
+        )}
+        {!standalone && (
+          <Button
+            onClick={() => setScanResult(null)}
+            variant="outline"
+            disabled={scanning}
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      <Button
+        onClick={copyMobileScannerLink}
+        variant="outline"
+        size={standalone ? 'lg' : 'default'}
+        className={`w-full transition-colors duration-150 bg-slate-200 text-slate-600 border-slate-300 hover:bg-slate-300 ${
+          copyFlash ? 'bg-red-500! text-white! border-red-500!' : ''
+        }`}
+      >
+        <Copy className="h-4 w-4 mr-2" />
+        Mobile Scanner (copy link for mobile devices)
+      </Button>
     </div>
   );
 
