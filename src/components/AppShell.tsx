@@ -53,7 +53,7 @@ export function AppShell() {
       <Toaster position="top-center" richColors />
 
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="bg-[#d63a2e] p-2 rounded-lg">
@@ -82,7 +82,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
         {loading && (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#d63a2e]"></div>
@@ -100,11 +100,43 @@ export function AppShell() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-            <TabsTrigger value="rsvp">RSVP Form</TabsTrigger>
-            <TabsTrigger value="checkin">Check-in</TabsTrigger>
-            <TabsTrigger value="admin">Admin</TabsTrigger>
-          </TabsList>
+          <div className="relative w-full lg:w-[400px] h-12">
+            {/* White track (reference: white container) */}
+            <div
+              className="absolute inset-0 rounded-full border border-slate-200 bg-white shadow-sm dark:bg-white dark:border-slate-200"
+              aria-hidden
+            />
+            {/* Sliding active segment (reference: tinted block behind active tab) */}
+            <div
+              className="absolute top-2 bottom-2 rounded-full border border-slate-200 bg-slate-100 transition-[transform] duration-200 ease-out dark:border-slate-200 dark:bg-slate-100"
+              style={{
+                width: 'calc((100% - 1rem) / 3)',
+                left: '0.5rem',
+                transform: `translateX(${activeTab === 'rsvp' ? 0 : activeTab === 'checkin' ? 100 : 200}%)`,
+              }}
+              aria-hidden
+            />
+            <TabsList className="relative z-10 grid w-full grid-cols-3 h-full rounded-full border-0 bg-transparent p-2 dark:bg-transparent">
+              <TabsTrigger
+                value="rsvp"
+                className="border-0 bg-transparent text-slate-700 data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none dark:bg-transparent dark:text-slate-700 dark:data-[state=active]:bg-transparent dark:data-[state=active]:text-[#d63a2e]"
+              >
+                RSVP Form
+              </TabsTrigger>
+              <TabsTrigger
+                value="checkin"
+                className="border-0 bg-transparent text-slate-700 data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none dark:bg-transparent dark:text-slate-700 dark:data-[state=active]:bg-transparent dark:data-[state=active]:text-[#d63a2e]"
+              >
+                Check-in
+              </TabsTrigger>
+              <TabsTrigger
+                value="admin"
+                className="border-0 bg-transparent text-slate-700 data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none dark:bg-transparent dark:text-slate-700 dark:data-[state=active]:bg-transparent dark:data-[state=active]:text-[#d63a2e]"
+              >
+                Admin
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="rsvp" className="space-y-6">
             <RSVPForm
