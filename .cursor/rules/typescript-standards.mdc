@@ -1,0 +1,35 @@
+---
+description: TypeScript strictness and export conventions (RULE-001)
+globs: "**/*.ts,**/*.tsx"
+alwaysApply: false
+---
+
+# RULE-001: TypeScript Strictness (Critical)
+
+- **No `any`.** Use proper types or `unknown` with narrowing.
+- **No `@ts-ignore`** without a `REASON:` comment explaining why and when it can be removed.
+- **Explicit return types for exports** — all exported functions and methods must declare their return type.
+
+## Examples
+
+```typescript
+// ❌ BAD
+export function getItem(id: string) {
+  return store.get(id);
+}
+
+// ✅ GOOD
+export function getItem(id: string): Item | undefined {
+  return store.get(id);
+}
+```
+
+```typescript
+// ❌ BAD
+// @ts-ignore
+const x = legacyApi();
+
+// ✅ GOOD (only when unavoidable)
+// @ts-ignore REASON: legacyApi has no types; ticket #123 to add types. Remove after.
+const x = legacyApi();
+```

@@ -1,0 +1,14 @@
+---
+description: Font and design variable mapping (RULE-004)
+globs: "**/*.css,**/*.scss,**/*.tsx,**/*.jsx"
+alwaysApply: false
+---
+
+# RULE-004: Asset Mapping (Critical)
+
+- **No `"Satoshi Variable"`** — do not use this font reference.
+- **Map `"Lexend Mega"`** → `.font-lexend-mega`.
+- **Map `"Roboto"`** → `.font-roboto`.
+- **Flag missing variables** with `/* VAR_NEEDED: [name] */` when a design variable is not yet defined.
+
+Use these class/variable mappings consistently in styles and components.
