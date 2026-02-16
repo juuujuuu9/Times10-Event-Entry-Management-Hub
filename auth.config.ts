@@ -27,6 +27,22 @@ export default defineConfig({
     }),
   ],
   callbacks: {
+    redirect({ url, baseUrl }) {
+      // Catch-all: when AUTH_URL is set, never redirect to localhost (fixes signout, callback, etc. on Vercel).
+      const canonicalOrigin = authBase ? new URL(authBase).origin : null;
+      const base = canonicalOrigin ?? baseUrl;
+      if (url.startsWith('/')) return `${base}${url}`;
+      try {
+        const u = new URL(url);
+        if (canonicalOrigin && (u.origin.includes('localhost') || u.origin === baseUrl)) {
+          return `${canonicalOrigin}${u.pathname}${u.search}${u.hash}`;
+        }
+        if (u.origin === baseUrl) return url;
+        return base;
+      } catch {
+        return base;
+      }
+    },
     async signIn({ user }) {
       const role = getStaffRole(user.email ?? undefined);
       return role !== null;
