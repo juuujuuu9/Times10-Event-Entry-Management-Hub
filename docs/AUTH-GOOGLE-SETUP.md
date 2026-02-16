@@ -19,27 +19,28 @@ Use the same protocol, host, port, and path as your app (no trailing slash). Def
 
 ---
 
-## 2. Production 403 and "Cross-site"... is not valid JSON
+## 2. 403 and "Cross-site"... is not valid JSON (local or production)
 
 **Symptoms:** `POST .../api/auth/signin/google` returns **403 (Forbidden)**; client shows `SyntaxError: Unexpected token 'C', "Cross-site"... is not valid JSON`.
 
-**Cause:** The auth server returns a non-JSON response (e.g. a CSRF or error page starting with "Cross-site..."), and the client expects JSON. This often happens when the app’s canonical URL is wrong in production (e.g. behind a proxy or wrong host).
+**Cause:** Auth.js rejects the request (CSRF / origin check) and returns a plain-text error starting with "Cross-site...". The client expects JSON, so it throws. This happens when the app's canonical URL doesn't match the URL you're actually using (wrong host, port, or missing `AUTH_URL`).
 
 **Fixes:**
 
-1. **Set `AUTH_URL` in production**  
-   In your production env (e.g. Vercel), set:
-   ```bash
-   AUTH_URL=https://qrsuite.times10.net
-   ```
-   Use your real production origin (no path, no trailing slash). This makes Auth.js use the correct origin for callbacks and CSRF.
+1. **Set `AUTH_URL`**  
+   Set it to the **exact** origin you use in the browser (no path, no trailing slash).
+   - **Local:** `AUTH_URL=http://localhost:4321` (open the app at `http://localhost:4321`, not 127.0.0.1 or another port).
+   - **Production:** `AUTH_URL=https://qrsuite.times10.net` (or your real domain).
 
 2. **Keep `AUTH_TRUST_HOST=true`**  
-   Already in `.env.example`; required when the host is inferred from `X-Forwarded-Host` (e.g. Vercel).
+   Required when the host is inferred from headers (e.g. behind Vercel).
 
 3. **Confirm redirect URI in Google**  
-   Production 403 can also appear if the redirect URI is missing or wrong. Ensure **Authorized redirect URIs** includes:
-   `https://qrsuite.times10.net/api/auth/callback/google`
-   (see section 1).
+   **Authorized redirect URIs** must include the same origin + path, e.g.  
+   `http://localhost:4321/api/auth/callback/google` (local) or  
+   `https://qrsuite.times10.net/api/auth/callback/google` (production).  
+   See section 1.
 
-After changing env vars, redeploy so the new `AUTH_URL` is used.
+4. **Vercel production only:** Astro's `security.checkOrigin` can block auth POSTs due to a serverless URL/origin mismatch. This project disables it in `astro.config.mjs`; Auth.js provides its own CSRF protection for OAuth.
+
+Restart the dev server (or redeploy) after changing env vars.
