@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getEventById } from '../../../../lib/db';
+import { getEventById } from '../../../lib/db';
 
 export const GET: APIRoute = async ({ params }) => {
   const id = params?.id;
