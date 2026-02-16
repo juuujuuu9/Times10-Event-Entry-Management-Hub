@@ -2,7 +2,19 @@ import { defineConfig } from 'auth-astro';
 import Google from '@auth/core/providers/google';
 import { getStaffRole } from './src/lib/staff';
 
+// Force the OAuth redirect_uri when the request URL is wrong (e.g. Vercel infers localhost).
+// Set AUTH_URL in production (e.g. https://qrsuite.times10.net or https://qrsuite.times10.net/api/auth).
+const authUrl =
+  (typeof process !== 'undefined' && process.env?.AUTH_URL) ||
+  (typeof import.meta !== 'undefined' && (import.meta.env?.AUTH_URL as string));
+const authBase = authUrl
+  ? authUrl.endsWith('/api/auth')
+    ? authUrl
+    : `${authUrl.replace(/\/$/, '')}/api/auth`
+  : undefined;
+
 export default defineConfig({
+  ...(authBase && { redirectProxyUrl: authBase }),
   providers: [
     Google({
       clientId: import.meta.env.GOOGLE_CLIENT_ID,
