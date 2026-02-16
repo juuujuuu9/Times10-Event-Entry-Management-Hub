@@ -66,7 +66,7 @@ export function RSVPForm({ onSuccess }: RSVPFormProps) {
       const attendee = result as Attendee;
       setNewAttendee(attendee);
 
-      const { qrPayload } = await apiService.getQRPayload(attendee.id);
+      const qrPayload = attendee.qrPayload ?? (await apiService.getQRPayload(attendee.id)).qrPayload;
       const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, {
         width: QR_GENERATION.width,
         margin: QR_GENERATION.margin,

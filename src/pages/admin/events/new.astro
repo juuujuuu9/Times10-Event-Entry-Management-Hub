@@ -1,0 +1,133 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="New Event">
+  <div class="min-h-screen bg-slate-50">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-3">
+            <a href="/admin/events" class="flex items-center gap-3">
+              <div class="bg-[#d63a2e] p-2 rounded-lg">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <span class="font-bold text-slate-900">Events</span>
+            </a>
+            <a href="/admin" class="text-sm text-slate-600 hover:text-[#d63a2e]">Attendees</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
+      <h1 class="text-2xl font-bold text-slate-900 mb-6">New event</h1>
+
+      <form id="new-event-form" class="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <div>
+          <label for="name" class="block text-sm font-medium text-slate-700 mb-1">Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            class="w-full rounded border border-slate-300 px-3 py-2 text-slate-900 focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
+            placeholder="e.g. Summer Party 2024"
+          />
+        </div>
+        <div>
+          <label for="slug" class="block text-sm font-medium text-slate-700 mb-1">Slug (URL-friendly)</label>
+          <input
+            type="text"
+            id="slug"
+            name="slug"
+            class="w-full rounded border border-slate-300 px-3 py-2 text-slate-900 focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
+            placeholder="e.g. summer-party-2024"
+          />
+          <p class="mt-1 text-xs text-slate-500">Used in webhooks and URLs. Lowercase, no spaces.</p>
+        </div>
+        <div>
+          <label for="micrositeUrl" class="block text-sm font-medium text-slate-700 mb-1">Microsite URL (optional)</label>
+          <input
+            type="url"
+            id="micrositeUrl"
+            name="micrositeUrl"
+            class="w-full rounded border border-slate-300 px-3 py-2 text-slate-900 focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
+            placeholder="https://..."
+          />
+        </div>
+        <div id="form-error" class="hidden text-sm text-red-600"></div>
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            class="rounded bg-[#d63a2e] px-4 py-2 text-sm font-medium text-white hover:bg-[#c2352a] disabled:opacity-50"
+          >
+            Create event
+          </button>
+          <a href="/admin/events" class="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            Cancel
+          </a>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    const form = document.getElementById('new-event-form') as HTMLFormElement;
+    const nameInput = document.getElementById('name') as HTMLInputElement;
+    const slugInput = document.getElementById('slug') as HTMLInputElement;
+    const errorEl = document.getElementById('form-error');
+
+    nameInput?.addEventListener('input', () => {
+      if (!slugInput?.value && nameInput.value) {
+        slugInput.value = nameInput.value
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9-]/g, '');
+      }
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!errorEl) return;
+      errorEl.classList.add('hidden');
+      const name = (nameInput?.value ?? '').trim();
+      let slug = (slugInput?.value ?? '').trim().toLowerCase().replace(/\s+/g, '-');
+      if (!slug && name) slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      if (!name) {
+        errorEl.textContent = 'Name is required';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      if (!slug) {
+        errorEl.textContent = 'Slug is required';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      const micrositeUrl = (document.getElementById('micrositeUrl') as HTMLInputElement)?.value?.trim() || undefined;
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+      submitBtn.disabled = true;
+      try {
+        const res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, slug, micrositeUrl }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          errorEl.textContent = data.error || `Error ${res.status}`;
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        window.location.href = '/admin?event=' + (data.id ?? '');
+      } catch (err) {
+        errorEl.textContent = 'Failed to create event. Try again.';
+        errorEl.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</Layout>

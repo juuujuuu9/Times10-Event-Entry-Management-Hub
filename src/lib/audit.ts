@@ -13,15 +13,17 @@ export function logCheckInAttempt(params: {
   ip: string;
   outcome: CheckInOutcome;
   attendeeId?: string | null;
+  eventId?: string | null;
   timestamp?: Date;
 }): void {
-  const { ip, outcome, attendeeId = null, timestamp = new Date() } = params;
+  const { ip, outcome, attendeeId = null, eventId = null, timestamp = new Date() } = params;
   const line = JSON.stringify({
     type: 'check_in_attempt',
     timestamp: timestamp.toISOString(),
     ip,
     outcome,
     attendeeId,
+    eventId,
   });
   console.log(line);
 }

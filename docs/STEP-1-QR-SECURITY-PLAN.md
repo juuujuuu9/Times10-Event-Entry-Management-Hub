@@ -1,6 +1,8 @@
 # Step 1: QR Check-In Security — Implementation Plan
 
-This document plans **Step 1** of the gap list: moving from weak, static QR identifiers to a production-ready model that addresses **guessability**, **replay**, and **shoulder-surfing**.
+This document plans **Step 1** of the dev checklist: moving from weak, static QR identifiers to a production-ready model that addresses **guessability**, **replay**, and **shoulder-surfing**.
+
+**Master plan:** The single dev checklist and progress tracker is [docs/MASTER-PLAN.md](MASTER-PLAN.md). Step 1 = item 1 there.
 
 ---
 
@@ -10,9 +12,9 @@ This document plans **Step 1** of the gap list: moving from weak, static QR iden
 
 - **If you have existing data:** Run `npm run migrate-qr` once to add token columns and backfill attendee `id` to UUIDs. After that, only QR codes in `id:qr_token` format work at check-in.
 - **Fresh installs:** `npm run setup-db` already creates the new schema (UUID `id`, token columns).
-- **Next steps (choose one or more):**
+- **Next steps (see [MASTER-PLAN.md](MASTER-PLAN.md) for full order):**
+  - **Item 2:** Google login (auth-astro) for staff-only Admin.
   - **Phase 3 (backlog):** Geolocation, anomaly detection, or encrypted QR payloads when you need them.
-  - **Other gap list items:** Move on to the next step in your overall product/security roadmap (e.g. auth for admin, multi-event support).
   - **Optional hardening:** Add a `check_in_attempts` table and log there instead of (or in addition to) console; send `scannerDeviceId` from the scanner UI for better audit trails.
 
 ---
@@ -34,6 +36,8 @@ This document plans **Step 1** of the gap list: moving from weak, static QR iden
 - **Single identifier:** `id` is the UUID (primary key). No separate `uuid` column. After migration, all attendee IDs are UUIDs (new and backfilled).
 - **QR token:** Short-lived, single-use credential. Encoded in QR as `id:qr_token` (e.g. `550e8400-e29b-41d4-a716-446655440000:a3f7b2d8e9c1...`). Valid only until first use or expiry.
 - **Schema:** Keep `id` as PK; add only `qr_token`, `qr_expires_at`, `qr_used_at`, `qr_used_by_device`. Legacy `JSON.stringify({ id, email })` format is **dropped** — check-in accepts only `id:token`.
+
+**Evolution (Central Hub):** The QR format is extended to `eventId:entryId:token` (v2) for the multi-event hub; see [STEP-2-CENTRAL-HUB.md](STEP-2-CENTRAL-HUB.md). Check-in still accepts the legacy two-part `entryId:token` (v1) during transition. The security model (short-lived token, single-use, replay detection) is unchanged.
 
 ---
 
@@ -158,4 +162,4 @@ This document plans **Step 1** of the gap list: moving from weak, static QR iden
 - **Phase 2 (done):** Dynamic, single-use tokens in QR + expiry + replay detection + refresh endpoint — shoulder-surfing and replay addressed.
 - **Phase 3 (backlog):** Geolocation, anomaly detection, encrypted payloads — when you need stronger guarantees.
 
-Step 1 of the gap list (“QR/check-in security”) is complete. Use the **Progress & next steps** section above for what to run and what to do next.
+Step 1 of the [master plan](MASTER-PLAN.md) (“QR/check-in security”) is complete. Use the **Progress & next steps** section above for what to run; the master plan lists the next checklist item (Google login).

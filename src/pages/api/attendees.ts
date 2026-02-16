@@ -5,10 +5,13 @@ import {
   createAttendee,
   deleteAttendee,
 } from '../../lib/db';
+import { getOrCreateQRPayload } from '../../lib/qr-token';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
   try {
-    const attendees = await getAllAttendees();
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId') ?? undefined;
+    const attendees = await getAllAttendees(eventId ?? undefined);
     return new Response(JSON.stringify(attendees), {
       headers: { 'Content-Type': 'application/json' },
     });
@@ -37,8 +40,15 @@ export const POST: APIRoute = async ({ request }) => {
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    const attendee = await createAttendee(data);
-    return new Response(JSON.stringify(attendee), {
+    const attendee = await createAttendee({
+      ...data,
+      eventId: data.eventId ?? undefined,
+    });
+    const qrResult = await getOrCreateQRPayload(attendee.id);
+    const body = qrResult
+      ? { ...attendee, qrPayload: qrResult.qrPayload, qrExpiresAt: qrResult.expiresAt.toISOString() }
+      : attendee;
+    return new Response(JSON.stringify(body), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });

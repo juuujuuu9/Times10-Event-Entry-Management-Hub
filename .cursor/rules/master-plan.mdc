@@ -1,0 +1,11 @@
+---
+description: Keep the master plan as the single dev checklist and progress reference
+alwaysApply: true
+---
+
+# Master Plan (docs/MASTER-PLAN.md)
+
+- **Single source of truth:** The dev checklist and roadmap live in [docs/MASTER-PLAN.md](docs/MASTER-PLAN.md). When discussing "what's next," "gap list," or "roadmap," refer to that file.
+- **When completing work** that matches a checklist item: update [docs/MASTER-PLAN.md](docs/MASTER-PLAN.md) — set the item to `[x]`, add a brief Done note if useful, and update the **Last updated** date at the top.
+- **When adding or changing** implementation steps that affect the roadmap: update the master plan (concern audit table and/or implementation order) so it stays accurate.
+- **Other docs** (e.g. STEP-1-QR-SECURITY-PLAN.md) implement specific items; they should reference the master plan for overall order and next steps.

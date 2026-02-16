@@ -39,9 +39,25 @@ class ApiService {
     return { ok: true as const, data };
   }
 
-  async getAllAttendees(): Promise<Attendee[]> {
-    const res = await this.fetchWithError('/api/attendees');
+  async getAllAttendees(eventId?: string): Promise<Attendee[]> {
+    const url = eventId ? `/api/attendees?eventId=${encodeURIComponent(eventId)}` : '/api/attendees';
+    const res = await this.fetchWithError(url);
     return (res as { ok: true; data: Attendee[] }).data ?? [];
+  }
+
+  async getEvents(): Promise<{ id: string; name: string; slug: string }[]> {
+    const res = await this.fetchWithError('/api/events');
+    return (res as { ok: true; data: { id: string; name: string; slug: string }[] }).data ?? [];
+  }
+
+  async getEvent(id: string): Promise<{ id: string; name: string; slug: string } | null> {
+    try {
+      const res = await this.fetchWithError(`/api/events/${id}`);
+      return (res as { ok: true; data: { id: string; name: string; slug: string } }).data ?? null;
+    } catch (e) {
+      if ((e as { status?: number }).status === 404) return null;
+      throw e;
+    }
   }
 
   async createAttendee(

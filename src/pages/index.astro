@@ -1,8 +1,7 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { AppShell } from '../components/AppShell';
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/login');
+}
+return Astro.redirect('/admin');
 ---
-
-<Layout>
-  <AppShell client:load />
-</Layout>

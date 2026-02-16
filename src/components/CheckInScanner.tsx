@@ -261,6 +261,11 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
               >
                 {scanResult.message}
               </p>
+              {scanResult.success && scanResult.event && (
+                <p className="text-sm text-green-700 mt-1">
+                  Event: {scanResult.event.name}
+                </p>
+              )}
               {scanResult.attendee && (
                 <div className="mt-4 pt-4 border-t border-current border-opacity-20">
                   <p className="text-sm font-medium mb-2">Attendee Details:</p>

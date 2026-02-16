@@ -49,6 +49,10 @@ Event RSVP and check-in app: guests RSVP and receive a QR code; staff scan codes
 | Email          | Resend                           |
 | UI primitives  | Radix UI, Lucide icons, Sonner toasts |
 
+## Development & roadmap
+
+The **dev checklist and progress** live in **[docs/MASTER-PLAN.md](docs/MASTER-PLAN.md)**. Use it to track what’s done and what’s next; update it when you complete items. It’s the single reference for the roadmap and for later documentation.
+
 ## Project Structure
 
 ```
