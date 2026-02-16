@@ -2,8 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import { CheckInScanner } from '../components/CheckInScanner';
 import { Toaster } from '../components/ui/sonner';
+import { getSignOutUrl } from '../lib/auth-url';
 
 const { user } = Astro.locals;
+const signOutUrl = getSignOutUrl(Astro.url.origin);
 ---
 
 <Layout title="Check-in Scanner">
@@ -16,7 +18,7 @@ const { user } = Astro.locals;
         </div>
         <div class="flex items-center gap-4">
           <span class="text-sm text-slate-300">{user?.name ?? user?.email ?? 'Staff'}</span>
-          <a href="/api/auth/signout" class="text-sm text-red-400 hover:text-red-300">Sign out</a>
+          <a href={signOutUrl} class="text-sm text-red-400 hover:text-red-300">Sign out</a>
         </div>
       </div>
     </header>

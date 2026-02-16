@@ -2,8 +2,10 @@
 import Layout from '../../layouts/Layout.astro';
 import { AdminPage } from '../../components/AdminPage';
 import { getAllEvents } from '../../lib/db';
+import { getSignOutUrl } from '../../lib/auth-url';
 
 const { user } = Astro.locals;
+const signOutUrl = getSignOutUrl(Astro.url.origin);
 const events = await getAllEvents();
 const selectedEventId = Astro.url.searchParams.get('event') ?? '';
 ---
@@ -27,7 +29,7 @@ const selectedEventId = Astro.url.searchParams.get('event') ?? '';
           </div>
           <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600">{user?.name ?? user?.email ?? 'Staff'}</span>
-            <a href="/api/auth/signout" class="text-sm text-slate-600 hover:text-[#d63a2e]">Sign out</a>
+            <a href={signOutUrl} class="text-sm text-slate-600 hover:text-[#d63a2e]">Sign out</a>
           </div>
         </div>
       </div>
