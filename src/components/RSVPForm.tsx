@@ -1,0 +1,329 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Calendar, Building2, Mail } from 'lucide-react';
+import { toast } from 'sonner';
+import type { Attendee, RSVPFormData } from '@/types/attendee';
+import { apiService } from '@/services/api';
+import { QR_GENERATION } from '@/config/qr';
+import QRCode from 'qrcode';
+
+interface RSVPFormProps {
+  onSuccess?: () => void;
+}
+
+export function RSVPForm({ onSuccess }: RSVPFormProps) {
+  const [formData, setFormData] = useState<RSVPFormData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    company: '',
+    dietaryRestrictions: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [generatedQR, setGeneratedQR] = useState<string>('');
+  const [newAttendee, setNewAttendee] = useState<Attendee | null>(null);
+  const [emailStatus, setEmailStatus] = useState<{
+    configured: boolean;
+    link: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (showPreview) {
+      apiService
+        .getEmailStatus()
+        .then(setEmailStatus)
+        .catch(() =>
+          setEmailStatus({ configured: false, link: 'https://resend.com/api-keys' })
+        );
+    }
+  }, [showPreview]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const result = await apiService.createAttendee(formData);
+
+      if ('ok' in result && !result.ok) {
+        toast.info(result.message);
+        setLoading(false);
+        return;
+      }
+
+      const attendee = result as Attendee;
+      setNewAttendee(attendee);
+
+      const qrData = JSON.stringify({ id: attendee.id, email: attendee.email });
+      const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
+        width: QR_GENERATION.width,
+        margin: QR_GENERATION.margin,
+        errorCorrectionLevel: QR_GENERATION.errorCorrectionLevel,
+      });
+      setGeneratedQR(qrCodeDataUrl);
+
+      try {
+        await apiService.sendEmail(attendee.id, qrCodeDataUrl);
+        toast.success(
+          "Registration successful! We've sent your QR code to your email — scan it at check-in."
+        );
+      } catch {
+        toast.success('Registration successful! Save your QR code below.');
+        toast.error('Email could not be sent.');
+      }
+
+      setShowPreview(true);
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        company: '',
+        dietaryRestrictions: '',
+      });
+      onSuccess?.();
+    } catch {
+      toast.error('Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Event Registration</CardTitle>
+          <CardDescription>
+            Fill out the form below to register for the event
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">First Name *</Label>
+                <Input
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+                disabled={loading}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="company">Company</Label>
+              <Input
+                id="company"
+                value={formData.company}
+                onChange={(e) =>
+                  setFormData({ ...formData, company: e.target.value })
+                }
+                disabled={loading}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="dietaryRestrictions">Dietary Restrictions</Label>
+              <Input
+                id="dietaryRestrictions"
+                value={formData.dietaryRestrictions}
+                onChange={(e) =>
+                  setFormData({ ...formData, dietaryRestrictions: e.target.value })
+                }
+                placeholder="e.g., Vegetarian, Vegan, Gluten-free"
+                disabled={loading}
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Registering...' : 'Register'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Event Information</CardTitle>
+            <CardDescription>
+              Details about the upcoming event
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start gap-3">
+              <Calendar className="h-5 w-5 text-slate-500 mt-0.5" />
+              <div>
+                <p className="font-medium">Date & Time</p>
+                <p className="text-sm text-slate-600">
+                  March 15, 2024 • 6:00 PM - 9:00 PM
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Building2 className="h-5 w-5 text-slate-500 mt-0.5" />
+              <div>
+                <p className="font-medium">Venue</p>
+                <p className="text-sm text-slate-600">
+                  Tech Innovation Center
+                  <br />
+                  123 Main Street, San Francisco, CA
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Mail className="h-5 w-5 text-slate-500 mt-0.5" />
+              <div>
+                <p className="font-medium">Contact</p>
+                <p className="text-sm text-slate-600">
+                  events@yourcompany.com
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Registration Successful!</DialogTitle>
+            <DialogDescription>
+              We've sent your unique QR code to your email. Scan it at
+              check-in — or save / resend from here.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            {newAttendee && (
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">Registration Details</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-slate-600">Name</p>
+                    <p className="font-medium">
+                      {newAttendee.firstName} {newAttendee.lastName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">Email</p>
+                    <p className="font-medium">{newAttendee.email}</p>
+                  </div>
+                  {newAttendee.company && (
+                    <div>
+                      <p className="text-slate-600">Company</p>
+                      <p className="font-medium">{newAttendee.company}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-slate-600">Registration Date</p>
+                    <p className="font-medium">
+                      {new Date(newAttendee.rsvpAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {generatedQR && (
+              <div className="text-center">
+                <img src={generatedQR} alt="QR Code" className="mx-auto mb-4" />
+                <Button
+                  onClick={async () => {
+                    if (newAttendee) {
+                      try {
+                        await apiService.sendEmail(
+                          newAttendee.id,
+                          generatedQR
+                        );
+                        toast.success('Email sent successfully!');
+                      } catch {
+                        toast.error('Failed to send email');
+                      }
+                    }
+                  }}
+                  variant="outline"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send QR Code to Email
+                </Button>
+                {emailStatus && !emailStatus.configured && (
+                  <p className="text-sm text-amber-700 mt-2">
+                    Email not configured. Add{' '}
+                    <code className="bg-slate-200 px-1 rounded">
+                      RESEND_API_KEY
+                    </code>{' '}
+                    in .env —{' '}
+                    <a
+                      href={emailStatus.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Get Resend API key
+                    </a>
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

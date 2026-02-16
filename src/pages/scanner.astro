@@ -1,0 +1,10 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { CheckInScanner } from '../components/CheckInScanner';
+import { Toaster } from '../components/ui/sonner';
+---
+
+<Layout title="Check-in Scanner">
+  <CheckInScanner client:load standalone={true} />
+  <Toaster client:load position="top-center" richColors />
+</Layout>

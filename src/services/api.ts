@@ -1,0 +1,105 @@
+import type { Attendee, RSVPFormData, CheckInResult } from '@/types/attendee';
+
+class ApiService {
+  private async fetchWithError(url: string, options?: RequestInit) {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      if (response.status === 409) {
+        return {
+          ok: false as const,
+          status: response.status,
+          message: body.error || 'Already registered',
+        };
+      }
+      const msg =
+        body.error || (response.status === 404 ? 'Not found' : `HTTP ${response.status}`);
+      const err = new Error(msg) as Error & { status?: number };
+      err.status = response.status;
+      throw err;
+    }
+
+    const text = await response.text();
+    const data = text
+      ? (() => {
+          try {
+            return JSON.parse(text);
+          } catch {
+            return null;
+          }
+        })()
+      : null;
+    return { ok: true as const, data };
+  }
+
+  async getAllAttendees(): Promise<Attendee[]> {
+    const res = await this.fetchWithError('/api/attendees');
+    return (res as { ok: true; data: Attendee[] }).data ?? [];
+  }
+
+  async createAttendee(
+    data: RSVPFormData
+  ): Promise<Attendee | { ok: false; status: number; message: string }> {
+    const res = await this.fetchWithError('/api/attendees', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if ('ok' in res && res.ok) return (res as { ok: true; data: Attendee }).data;
+    return res as { ok: false; status: number; message: string };
+  }
+
+  async deleteAttendee(id: string): Promise<void> {
+    await this.fetchWithError('/api/attendees', {
+      method: 'DELETE',
+      body: JSON.stringify({ id }),
+    });
+  }
+
+  async checkInAttendee(qrData: string): Promise<CheckInResult> {
+    const res = await fetch('/api/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qrData }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return body as CheckInResult;
+    }
+    if (res.status === 409) {
+      return {
+        success: false,
+        attendee: body.attendee,
+        message: body.attendee?.message || body.error || 'Already checked in',
+      };
+    }
+    throw new Error(body.error || `HTTP ${res.status}`);
+  }
+
+  async sendEmail(attendeeId: string, qrCodeBase64: string): Promise<void> {
+    await this.fetchWithError('/api/send-email', {
+      method: 'POST',
+      body: JSON.stringify({ attendeeId, qrCodeBase64 }),
+    });
+  }
+
+  async getEmailStatus(): Promise<{ configured: boolean; link: string }> {
+    const res = await fetch('/api/send-email');
+    const data = await res.json().catch(() => ({
+      configured: false,
+      link: 'https://resend.com/api-keys',
+    }));
+    return {
+      configured: Boolean(data?.configured),
+      link: data?.link || 'https://resend.com/api-keys',
+    };
+  }
+}
+
+export const apiService = new ApiService();
