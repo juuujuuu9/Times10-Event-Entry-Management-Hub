@@ -163,17 +163,19 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
           </Button>
         )}
       </div>
-      <Button
-        onClick={handleMobileScannerAction}
-        variant="outline"
-        size={standalone ? 'lg' : 'default'}
-        className={`w-full transition-colors duration-150 bg-slate-200 text-slate-600 border-slate-300 hover:bg-slate-300 ${
-          copyFlash ? 'bg-red-500! text-white! border-red-500!' : ''
-        }`}
-      >
-        <Copy className="h-4 w-4 mr-2 hidden md:inline-block" />
-        Mobile Scanner
-      </Button>
+      {!standalone && (
+        <Button
+          onClick={handleMobileScannerAction}
+          variant="outline"
+          size="default"
+          className={`w-full transition-colors duration-150 bg-slate-200 text-slate-600 border-slate-300 hover:bg-slate-300 ${
+            copyFlash ? 'bg-red-500! text-white! border-red-500!' : ''
+          }`}
+        >
+          <Copy className="h-4 w-4 mr-2 hidden md:inline-block" />
+          Mobile Scanner
+        </Button>
+      )}
     </div>
   );
 
