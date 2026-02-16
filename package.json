@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "setup-db": "node scripts/setup-tables.mjs"
+    "setup-db": "node scripts/setup-tables.mjs",
+    "migrate-qr": "node scripts/migrate-qr-security.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",

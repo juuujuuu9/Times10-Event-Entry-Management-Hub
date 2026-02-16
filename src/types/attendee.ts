@@ -10,6 +10,9 @@ export interface Attendee {
   checkedInAt?: string;
   rsvpAt: string;
   qrCode?: string;
+  qrExpiresAt?: string;
+  qrUsedAt?: string;
+  qrUsedByDevice?: string;
 }
 
 export interface RSVPFormData {

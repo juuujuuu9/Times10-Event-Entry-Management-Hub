@@ -89,6 +89,14 @@ class ApiService {
     });
   }
 
+  async getQRPayload(attendeeId: string): Promise<{ qrPayload: string; expiresAt: string }> {
+    const res = await this.fetchWithError('/api/attendees/refresh-qr', {
+      method: 'POST',
+      body: JSON.stringify({ id: attendeeId }),
+    });
+    return (res as { ok: true; data: { qrPayload: string; expiresAt: string } }).data;
+  }
+
   async getEmailStatus(): Promise<{ configured: boolean; link: string }> {
     const res = await fetch('/api/send-email');
     const data = await res.json().catch(() => ({

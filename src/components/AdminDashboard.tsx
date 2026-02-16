@@ -122,8 +122,8 @@ export function AdminDashboard({
   };
 
   const loadQRForAttendee = async (attendee: Attendee) => {
-    const qrData = JSON.stringify({ id: attendee.id, email: attendee.email });
-    const url = await QRCode.toDataURL(qrData, {
+    const { qrPayload } = await apiService.getQRPayload(attendee.id);
+    const url = await QRCode.toDataURL(qrPayload, {
       width: QR_GENERATION.width,
       margin: QR_GENERATION.margin,
       errorCorrectionLevel: QR_GENERATION.errorCorrectionLevel,

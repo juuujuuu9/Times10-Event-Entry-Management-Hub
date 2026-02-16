@@ -23,6 +23,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
   const [scanResult, setScanResult] = useState<CheckInResult | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [copyFlash, setCopyFlash] = useState(false);
+  const processingRef = useRef(false);
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCodeRef = useRef<{ stop: () => Promise<void> } | null>(null);
 
@@ -47,6 +48,10 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
         { facingMode: 'environment' },
         config,
         async (decodedText: string) => {
+          if (processingRef.current) return;
+          processingRef.current = true;
+          stopScanning();
+
           try {
             const result = await apiService.checkInAttendee(decodedText);
             setScanResult(result);
@@ -57,11 +62,11 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
             } else {
               toast.error(result.message);
             }
-
-            stopScanning();
           } catch (error) {
             console.error('Check-in error:', error);
             toast.error('Check-in failed');
+          } finally {
+            processingRef.current = false;
           }
         },
         () => {}

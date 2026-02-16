@@ -23,6 +23,9 @@ function rowToAttendee(row: Record<string, unknown>) {
     checkedIn: row.checked_in,
     checkedInAt: row.checked_in_at,
     rsvpAt: row.rsvp_at,
+    qrExpiresAt: row.qr_expires_at,
+    qrUsedAt: row.qr_used_at,
+    qrUsedByDevice: row.qr_used_by_device,
   };
 }
 
@@ -53,9 +56,7 @@ export async function createAttendee(data: {
   dietaryRestrictions?: string;
 }) {
   const db = getDb();
-  const id =
-    Math.random().toString(36).slice(2, 15) +
-    Math.random().toString(36).slice(2, 15);
+  const id = crypto.randomUUID();
   const rows = await db`
     INSERT INTO attendees (id, first_name, last_name, email, phone, company, dietary_restrictions, checked_in, rsvp_at)
     VALUES (${id}, ${data.firstName}, ${data.lastName}, ${data.email}, ${data.phone ?? ''}, ${data.company ?? ''}, ${data.dietaryRestrictions ?? ''}, false, NOW())
@@ -74,8 +75,52 @@ export async function checkInAttendee(id: string) {
   return rowToAttendee(rows[0] as Record<string, unknown>);
 }
 
+export async function findAttendeeByToken(id: string, token: string) {
+  const db = getDb();
+  const rows = await db`
+    SELECT * FROM attendees
+    WHERE id = ${id}
+      AND qr_token = ${token}
+      AND qr_expires_at > NOW()
+      AND qr_used_at IS NULL
+  `;
+  return rows.length ? rowToAttendee(rows[0] as Record<string, unknown>) : null;
+}
+
+export async function checkInAttendeeWithToken(
+  id: string,
+  token: string,
+  scannerDeviceId: string | null
+) {
+  const db = getDb();
+  const rows = await db`
+    UPDATE attendees
+    SET qr_used_at = NOW(),
+        qr_used_by_device = ${scannerDeviceId},
+        checked_in = true,
+        checked_in_at = NOW()
+    WHERE id = ${id} AND qr_token = ${token}
+    RETURNING *
+  `;
+  if (!rows.length) throw new Error('Attendee not found');
+  return rowToAttendee(rows[0] as Record<string, unknown>);
+}
+
 export async function deleteAttendee(id: string) {
   const db = getDb();
   const rows = await db`DELETE FROM attendees WHERE id = ${id} RETURNING id`;
   return rows.length > 0;
+}
+
+export async function updateAttendeeQRToken(
+  id: string,
+  token: string,
+  expiresAt: Date
+) {
+  const db = getDb();
+  await db`
+    UPDATE attendees
+    SET qr_token = ${token}, qr_expires_at = ${expiresAt}
+    WHERE id = ${id}
+  `;
 }
