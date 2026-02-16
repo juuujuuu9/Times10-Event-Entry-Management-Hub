@@ -9,7 +9,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -216,8 +215,8 @@ export function AdminDashboard({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[400px]">
-            <Table>
+          <div className="overflow-auto h-[400px] w-full min-w-0">
+            <Table className="min-w-[700px] w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
@@ -272,7 +271,7 @@ export function AdminDashboard({
                 ))}
               </TableBody>
             </Table>
-          </ScrollArea>
+          </div>
         </CardContent>
       </Card>
 
