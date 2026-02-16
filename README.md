@@ -21,7 +21,7 @@ Single-repo event RSVP & check-in app: Astro as the shell, Tailwind for styling,
    ```
    Open http://localhost:4321
 
-4. **Deploy to Vercel**: Connect repo, add env vars, deploy.
+4. **Deploy to Vercel**: See [Deploy to Vercel](#deploy-to-vercel) below.
 
 ## Flow
 
@@ -62,6 +62,25 @@ No `VITE_API_URL` or `CORS_ORIGIN` — everything is same-origin.
 | `npm run build` | Build for production             |
 | `npm run preview` | Preview production build        |
 | `npm run setup-db` | Create attendees table (one-time) |
+
+## Deploy to Vercel
+
+1. **Connect the repo** in [Vercel](https://vercel.com): New Project → Import this Git repo. Vercel will detect Astro and use the existing `vercel.json` and `@astrojs/vercel` adapter.
+
+2. **Set environment variables** in the project’s Vercel dashboard (Settings → Environment Variables). Add the same vars as in `.env.example`:
+   - `DATABASE_URL` — Neon (or Postgres) connection string
+   - `RESEND_API_KEY` — Resend API key
+   - `FROM_EMAIL` — Sender email (e.g. `onboarding@resend.dev` for testing)
+   - `FROM_NAME` — Sender name (e.g. `Event Check-In`)
+
+3. **Create the database table** (one-time): After the first deploy, run the setup script against your production DB (e.g. from your machine with `DATABASE_URL` pointing at your Neon DB):
+   ```bash
+   DATABASE_URL="your-production-database-url" npm run setup-db
+   ```
+
+4. **Deploy**: Push to the connected branch or trigger a deploy from the Vercel dashboard.
+
+The project is configured with Node 20+, `vercel.json`, and `.vercelignore`; no extra build settings are required.
 
 ## Routes
 
