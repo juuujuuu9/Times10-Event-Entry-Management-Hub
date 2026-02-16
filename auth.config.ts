@@ -28,20 +28,15 @@ export default defineConfig({
   ],
   callbacks: {
     redirect({ url, baseUrl }) {
-      // Catch-all: when AUTH_URL is set, never redirect to localhost (fixes signout, callback, etc. on Vercel).
-      const canonicalOrigin = authBase ? new URL(authBase).origin : null;
-      const base = canonicalOrigin ?? baseUrl;
-      if (url.startsWith('/')) return `${base}${url}`;
+      // Catch-all: use canonical origin when AUTH_URL is set (fixes localhost redirects on Vercel).
+      const origin = authUrl ? new URL(authUrl).origin : baseUrl;
+      if (url.startsWith('/')) return `${origin}${url}`;
       try {
-        const u = new URL(url);
-        if (canonicalOrigin && (u.origin.includes('localhost') || u.origin === baseUrl)) {
-          return `${canonicalOrigin}${u.pathname}${u.search}${u.hash}`;
-        }
-        if (u.origin === baseUrl) return url;
-        return base;
+        if (new URL(url).origin === origin) return url;
       } catch {
-        return base;
+        /* invalid url */
       }
+      return origin;
     },
     async signIn({ user }) {
       const role = getStaffRole(user.email ?? undefined);
@@ -50,7 +45,7 @@ export default defineConfig({
     async session({ session, token }) {
       if (session.user) {
         session.user.role = (token.role as 'admin' | 'scanner' | 'staff') ?? 'staff';
-        session.user.id = token.sub ?? undefined;
+        if (token.sub) session.user.id = token.sub;
       }
       return session;
     },
