@@ -26,7 +26,7 @@ async function main() {
       id VARCHAR(36) PRIMARY KEY,
       first_name VARCHAR(255) NOT NULL,
       last_name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL UNIQUE,
+      email VARCHAR(255) NOT NULL,
       phone VARCHAR(50),
       company VARCHAR(255),
       dietary_restrictions TEXT,
@@ -39,7 +39,7 @@ async function main() {
       qr_used_by_device VARCHAR(255)
     )
   `);
-  console.log('Created table attendees');
+  console.log('Created table attendees (no global UNIQUE on email; use migrate-events for event_id + UNIQUE(event_id, email))');
 
   await run('CREATE INDEX idx_attendees_email ON attendees(email)');
   await run('CREATE INDEX idx_attendees_checked_in ON attendees(checked_in)');
@@ -51,7 +51,6 @@ async function main() {
     INSERT INTO attendees (id, first_name, last_name, email, phone, company, dietary_restrictions, checked_in, rsvp_at) VALUES
     ('${randomUUID()}', 'John', 'Doe', 'john.doe@example.com', '+1 555-0123', 'Tech Corp', 'Vegetarian', false, NOW() - INTERVAL '2 days'),
     ('${randomUUID()}', 'Jane', 'Smith', 'jane.smith@example.com', '+1 555-0124', 'Design Studio', '', true, NOW() - INTERVAL '1 day')
-    ON CONFLICT (email) DO NOTHING
   `);
   console.log('Inserted sample data (skipped if already present)');
 

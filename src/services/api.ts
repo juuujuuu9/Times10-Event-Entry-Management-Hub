@@ -113,6 +113,23 @@ class ApiService {
     return (res as { ok: true; data: { qrPayload: string; expiresAt: string } }).data;
   }
 
+  async importAttendeesCSV(
+    eventId: string,
+    file: File
+  ): Promise<{ imported: number; skipped: number }> {
+    const formData = new FormData();
+    formData.set('eventId', eventId);
+    formData.set('file', file);
+    const res = await fetch('/api/attendees/import', {
+      method: 'POST',
+      body: formData,
+      // Do not set Content-Type; browser sets multipart/form-data with boundary
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    return { imported: data.imported ?? 0, skipped: data.skipped ?? 0 };
+  }
+
   async getEmailStatus(): Promise<{ configured: boolean; link: string }> {
     const res = await fetch('/api/send-email');
     const data = await res.json().catch(() => ({

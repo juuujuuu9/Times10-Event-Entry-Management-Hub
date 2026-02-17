@@ -125,6 +125,24 @@ async function main() {
       } else throw e;
     }
 
+    // 6b. Allow same email across events: drop global UNIQUE(email), add UNIQUE(event_id, email)
+    try {
+      await sql`ALTER TABLE attendees DROP CONSTRAINT IF EXISTS attendees_email_key`;
+      console.log('Dropped UNIQUE(email) if present');
+    } catch (e) {
+      if (e.code === '42703' || e.message?.includes('constraint')) {
+        console.log('No attendees_email_key constraint to drop');
+      } else throw e;
+    }
+    try {
+      await sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_attendees_event_email ON attendees(event_id, email)`;
+      console.log('Unique index event_id+email ready');
+    } catch (e) {
+      if (e.code === '42710' || e.message?.includes('already exists')) {
+        console.log('idx_attendees_event_email already exists');
+      } else throw e;
+    }
+
     // 7. Create indexes
     const indexes = [
       ['idx_attendees_event_id', sql`CREATE INDEX IF NOT EXISTS idx_attendees_event_id ON attendees(event_id)`],
@@ -145,6 +163,7 @@ async function main() {
       }
     }
   } else {
+    console.log('Would drop UNIQUE(email) if present; would create idx_attendees_event_email');
     console.log('Would create index: idx_attendees_event_id');
     console.log('Would create index: idx_attendees_event_qr');
     console.log('Would create index: idx_attendees_microsite_lookup');

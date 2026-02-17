@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -32,6 +32,7 @@ import {
   Download,
   RotateCcw,
   Trash2,
+  Upload,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Attendee } from '@/types/attendee';
@@ -41,12 +42,14 @@ import QRCode from 'qrcode';
 
 interface AdminDashboardProps {
   attendees: Attendee[];
-  onDelete?: () => void;
+  /** When set, show Import CSV (event-scoped). */
+  eventId?: string;
   onRefresh: () => void;
 }
 
 export function AdminDashboard({
   attendees,
+  eventId,
   onRefresh,
 }: AdminDashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +58,8 @@ export function AdminDashboard({
   );
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredAttendees = attendees.filter(
     (attendee) =>
@@ -118,6 +123,22 @@ export function AdminDashboard({
       onRefresh();
     } catch {
       toast.error('Failed to delete attendee');
+    }
+  };
+
+  const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !eventId) return;
+    e.target.value = '';
+    setImporting(true);
+    try {
+      const { imported, skipped } = await apiService.importAttendeesCSV(eventId, file);
+      toast.success(`Imported ${imported} attendee(s)${skipped > 0 ? `, ${skipped} skipped (duplicate email)` : ''}`);
+      onRefresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -197,6 +218,26 @@ export function AdminDashboard({
             className="pl-10"
           />
         </div>
+        {eventId && (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={handleImportCSV}
+              disabled={importing}
+            />
+            <Button
+              variant="outline"
+              disabled={importing}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {importing ? 'Importing…' : 'Import CSV'}
+            </Button>
+          </>
+        )}
         <Button onClick={exportToCSV} variant="outline">
           <Download className="h-4 w-4 mr-2" />
           Export CSV

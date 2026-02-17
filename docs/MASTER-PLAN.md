@@ -2,7 +2,7 @@
 
 **Purpose:** Single source of truth for development progress. Use as the dev checklist; update when completing work; reference from other docs. Feeds into later documentation.
 
-**Last updated:** 2026-02-16 (Central Hub implemented)
+**Last updated:** 2026-02-16 (CSV import as primary microsite sync)
 
 ---
 
@@ -34,7 +34,7 @@
 | Stolen screenshot / scan count | Missing | No "duplicate use" visibility in admin/scanner. |
 | Brightness / high-contrast QR | Partial | Email copy exists; QR config not explicit. |
 | Offline capability | Missing | No cache/sync for scanner. |
-| Multi-event / central hub | **Done** | Events table, event-scoped attendees, webhook, event selector in admin. Retroactive: default event + future CSV import. |
+| Multi-event / central hub | **Done** | Events table, event-scoped attendees; microsite sync = CSV import (primary); webhook optional. |
 | Add to Wallet / Group / Capacity / Analytics | Not implemented | Optional; prioritize later. |
 
 ---
@@ -58,7 +58,7 @@ Follow this order; check off and date as you complete each item.
 - [x] **Done.** Webhook: `POST /api/webhooks/entry` with `MICROSITE_WEBHOOK_KEY`; idempotency by `event_id` + `microsite_entry_id`; optional QR refresh. Option B (per-event keys) doc’d in STEP-2.
 - [x] **Done.** Admin: event selector, filter attendees/stats by event; `GET /api/events`, `GET /api/attendees?eventId=`; `/admin/events`, `/admin/events/new`.
 - [x] **Done.** Scanner: event name shown in success result when present.
-- [ ] (Later) Manual import: CSV/Excel upload for a selected event (retroactive import). See [STEP-2-CENTRAL-HUB.md](STEP-2-CENTRAL-HUB.md).
+- [x] **Done.** CSV import: Admin → select event → Import CSV; map columns to attendees; dedupe by event+email; `source_data` for import metadata. See [STEP-2-CENTRAL-HUB.md](STEP-2-CENTRAL-HUB.md).
 
 ### 4. Manual check-in by name
 
@@ -97,7 +97,7 @@ Follow this order; check off and date as you complete each item.
 | Doc | Covers |
 |-----|--------|
 | [STEP-1-QR-SECURITY-PLAN.md](STEP-1-QR-SECURITY-PLAN.md) | Item 1: UUID, token-only QR, rate limit, audit, migration. |
-| [STEP-2-CENTRAL-HUB.md](STEP-2-CENTRAL-HUB.md) | Item 3: Central hub, events, webhook, default event, retroactive import. |
+| [STEP-2-CENTRAL-HUB.md](STEP-2-CENTRAL-HUB.md) | Item 3: Central hub, events, CSV import (primary), webhook optional. |
 | (This implementation) | Item 2: auth-astro, middleware, login.astro, staff allowlist (src/lib/staff.ts). |
 
 ---

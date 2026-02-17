@@ -272,6 +272,19 @@ export async function findAttendeeByEventAndMicrositeId(
   return rows.length ? (rows[0] as { id: string; qr_token: string | null; qr_expires_at: string | null }) : null;
 }
 
+/** For CSV import deduplication: skip if this event already has an attendee with this email. */
+export async function findAttendeeByEventAndEmail(
+  eventId: string,
+  email: string
+): Promise<{ id: string } | null> {
+  const db = getDb();
+  const rows = await db`
+    SELECT id FROM attendees
+    WHERE event_id = ${eventId} AND LOWER(TRIM(email)) = LOWER(TRIM(${email}))
+  `;
+  return rows.length ? (rows[0] as { id: string }) : null;
+}
+
 export async function createEvent(data: {
   name: string;
   slug: string;

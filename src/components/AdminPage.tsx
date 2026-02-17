@@ -124,7 +124,11 @@ export function AdminPage({
         </div>
       )}
       {!loading && (
-        <AdminDashboard attendees={attendees} onRefresh={() => loadAttendees(eventId || undefined)} />
+        <AdminDashboard
+          attendees={attendees}
+          eventId={eventId || undefined}
+          onRefresh={() => loadAttendees(eventId || undefined)}
+        />
       )}
     </>
   );

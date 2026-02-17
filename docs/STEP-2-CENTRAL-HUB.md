@@ -48,14 +48,73 @@ Landing Page (Microsite)  ----webhook---->  Central Hub (this project)  <----  S
 
 ---
 
-## Retroactive import (Phase 2)
+## Syncing microsite data: CSV import (primary)
 
-For existing landing pages that don’t use the webhook:
+The **primary** way to get attendee data from external sites (microsites, landing pages, spreadsheets) into the hub is **CSV import**.
 
-1. Export CSV from the microsite (name, email, created_at, etc.).
-2. Admin: select event → Upload CSV.
-3. System creates attendee rows with `source_data = { imported: true, originalCreatedAt: ... }`; optionally generate QRs and send emails.
-4. Deduplication: match on email within event; show preview before import.
+1. Export a CSV from the microsite or tool (columns: name or first_name/last_name, email, and optionally phone, company, dietary_restrictions, created_at).
+2. In Admin, select the event → **Import CSV** → choose file → upload.
+3. The hub maps columns to the `attendees` table, deduplicates by **event + email** (skips existing), and stores import metadata in `source_data` (e.g. `{ imported: true, importedAt }`). Extra CSV columns can be stored in `source_data` for reference.
+4. No webhook or shared keys to sync; one-off or repeated imports as needed.
+
+**Table:** No change required. Existing `attendees` columns already support CSV-imported rows. Use `microsite_entry_id` only when you have a stable external id (e.g. from a webhook); for CSV, leave it null.
+
+**Optional webhook:** Real-time push is still available via `POST /api/webhooks/entry` and `MICROSITE_WEBHOOK_KEY`. Use only if you need live sync.
+
+---
+
+## Microsite sends QR emails (hub-compatible)
+
+**Paste this section into Cursor** when building a new microsite so it can create attendees in the hub and send hub-compatible QR emails from the microsite.
+
+When the microsite owns the registration flow and wants to **send the QR email itself** (e.g. its own branding, templates), use the webhook to create the attendee and get a compatible QR payload; do not ask the hub to send the email.
+
+### Hub setup
+
+1. **Event:** Ensure the event exists in the hub with the slug the microsite will use (e.g. `summer-gala`). Create via Admin or migration.
+2. **Webhook key:** In the hub’s `.env`:
+   ```bash
+   MICROSITE_WEBHOOK_KEY=<shared-secret>
+   ```
+   Generate with: `openssl rand -hex 32`. Share this secret only with the microsite (server-side).
+3. **Optional:** `PUBLIC_APP_URL` — used in the webhook response for `qrUrl` (e.g. link to view QR in browser). Not required if the microsite only uses `qrPayload`.
+
+### Microsite flow
+
+1. **On registration:** From the microsite backend (never from the browser, to keep the key secret), call the hub:
+   ```http
+   POST https://<hub-domain>/api/webhooks/entry
+   Authorization: Bearer <MICROSITE_WEBHOOK_KEY>
+   Content-Type: application/json
+
+   {
+     "eventSlug": "summer-gala",
+     "email": "guest@example.com",
+     "name": "Jane Doe",
+     "micrositeEntryId": "optional-stable-id-from-your-db",
+     "generateQR": true,
+     "sendEmail": false
+   }
+   ```
+   - `eventSlug`, `email` required. `name` optional (split into first/last by hub). `micrositeEntryId` optional but recommended for idempotency (same guest re-registering returns same entry + refreshed QR if expired).
+   - `generateQR: true` → hub creates/refreshes a QR token and returns `qrPayload`.
+   - `sendEmail: false` → hub does not send email; microsite will send.
+
+2. **Response (201):**
+   ```json
+   {
+     "entryId": "<uuid>",
+     "qrPayload": "<eventId>:<entryId>:<token>",
+     "qrUrl": "https://<hub>/qr/..."
+   }
+   ```
+   For idempotent existing entry: same shape, plus `"existing": true` and optionally `"refreshed": true` if the token was refreshed.
+
+3. **Generate QR image on the microsite:** Encode **exactly** the string `qrPayload` (no extra whitespace or prefix). Any QR library that encodes a string will work; the hub’s scanner expects the format `eventId:entryId:token`. Example (Node): `qrPayload` → PNG/Data URL (e.g. `qrcode` npm package).
+
+4. **Send the email from the microsite** with that image attached/inlined, using your own template and mail provider.
+
+Result: The attendee exists in the hub with a valid token; the QR you send from the microsite will scan and check in at the hub.
 
 ---
 
