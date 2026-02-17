@@ -20,8 +20,13 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    ssr: {
+      // React’s main entry is CJS; Vite’s SSR runner is ESM. Externalize so Node loads them in CJS context.
+      external: ['react', 'react-dom'],
+    },
     resolve: {
       alias: { '@': path.resolve(__dirname, './src') },
+      dedupe: ['react', 'react-dom'],
     },
   },
 

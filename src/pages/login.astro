@@ -11,7 +11,11 @@ try {
   console.error('[auth] getSession failed (check AUTH_SECRET and auth config):', err);
   configError = true;
 }
-const returnTo = Astro.url.searchParams.get('returnTo') || '/admin';
+// returnTo: e.g. /scanner or /admin — after login (or if already logged in) we redirect here.
+const rawReturnTo = Astro.url.searchParams.get('returnTo') || '/admin';
+const returnTo =
+  rawReturnTo.startsWith('/') && !rawReturnTo.startsWith('//') ? rawReturnTo : '/admin';
+
 const error = Astro.url.searchParams.get('error');
 const required = Astro.url.searchParams.get('required');
 
@@ -20,7 +24,7 @@ const authUrl =
   (typeof process !== 'undefined' && process.env?.AUTH_URL) ||
   (typeof import.meta !== 'undefined' && (import.meta.env?.AUTH_URL as string));
 const baseOrigin = authUrl ? new URL(authUrl).origin : Astro.url.origin;
-const callbackUrl = returnTo.startsWith('/') ? `${baseOrigin}${returnTo}` : `${baseOrigin}/${returnTo}`;
+const callbackUrl = `${baseOrigin}${returnTo}`;
 
 if (session?.user) {
   return Astro.redirect(returnTo);

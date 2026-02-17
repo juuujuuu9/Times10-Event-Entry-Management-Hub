@@ -22,7 +22,7 @@ if (!databaseUrl) {
 const sql = neon(databaseUrl);
 
 const DEFAULT_EVENT_SLUG = process.env.DEFAULT_EVENT_SLUG || 'default';
-const DEFAULT_EVENT_NAME = 'Default Event';
+const DEFAULT_EVENT_NAME = 'Demo Event';
 
 async function main() {
   if (DRY_RUN) {

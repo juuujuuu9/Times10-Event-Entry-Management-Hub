@@ -5,9 +5,20 @@ import { getAllEvents } from '../../lib/db';
 import { getSignOutUrl, getSignOutFormProps } from '../../lib/auth-url';
 
 const { user } = Astro.locals;
-const signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
-const signOutForm = await getSignOutFormProps(Astro.request);
-const events = await getAllEvents();
+let signOutUrl = '/api/auth/signout?callbackUrl=/';
+let signOutForm: { action: string; callbackUrl: string; csrfToken: string } | null = null;
+let events: { id: string; name: string; slug: string }[] = [];
+let pageError = '';
+
+try {
+  signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
+  signOutForm = await getSignOutFormProps(Astro.request);
+  const rows = await getAllEvents();
+  events = rows.map((e) => ({ id: String(e.id), name: String(e.name), slug: String(e.slug) }));
+} catch (err) {
+  console.error('[admin] page setup failed:', err);
+  pageError = err instanceof Error ? err.message : 'Failed to load page';
+}
 const selectedEventId = Astro.url.searchParams.get('event') ?? '';
 ---
 
@@ -46,7 +57,15 @@ const selectedEventId = Astro.url.searchParams.get('event') ?? '';
 
     <main class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
       <h1 class="text-2xl font-bold text-slate-900 mb-6">Attendees</h1>
-      <AdminPage client:load events={events} selectedEventId={selectedEventId} />
+      {pageError ? (
+        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+          <p class="font-medium">Could not load admin</p>
+          <p class="mt-1 text-sm">{pageError}</p>
+          <p class="mt-2 text-sm">Check the server logs and ensure DATABASE_URL is set. Refresh the page to retry.</p>
+        </div>
+      ) : (
+        <AdminPage client:load events={events} selectedEventId={selectedEventId} />
+      )}
     </main>
   </div>
 </Layout>
