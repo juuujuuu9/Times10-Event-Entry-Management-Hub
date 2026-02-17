@@ -7,15 +7,26 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, X, RotateCcw, CheckCircle2, QrCode, Copy } from 'lucide-react';
+import { Camera, X, RotateCcw, CheckCircle2, QrCode, Copy, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CheckInResult } from '@/types/attendee';
 import { apiService } from '@/services/api';
 import { QR_SCANNER } from '@/config/qr';
+import {
+  preloadScannerSounds,
+  provideFeedback,
+  type FeedbackType,
+} from '@/lib/feedback';
 
 interface CheckInScannerProps {
   onCheckIn?: () => void;
   standalone?: boolean;
+}
+
+function feedbackTypeFromResult(result: CheckInResult): FeedbackType {
+  if (result.success) return 'success';
+  if (result.alreadyCheckedIn) return 'alreadyCheckedIn';
+  return 'error';
 }
 
 export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScannerProps) {
@@ -23,18 +34,20 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
   const [scanResult, setScanResult] = useState<CheckInResult | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [copyFlash, setCopyFlash] = useState(false);
+  const [announcement, setAnnouncement] = useState('');
   const processingRef = useRef(false);
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCodeRef = useRef<{ stop: () => Promise<void> } | null>(null);
 
-  const playSound = (kind: 'success' | 'error') => {
-    try {
-      const audio = new Audio(`/sounds/${kind}.mp3`);
-      audio.play().catch(() => {});
-    } catch {
-      // ignore
-    }
-  };
+  useEffect(() => {
+    preloadScannerSounds();
+  }, []);
+
+  useEffect(() => {
+    if (!announcement) return;
+    const t = setTimeout(() => setAnnouncement(''), 2000);
+    return () => clearTimeout(t);
+  }, [announcement]);
 
   const startScanning = async () => {
     try {
@@ -53,32 +66,42 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
         showTorchButtonIfSupported: QR_SCANNER.showTorchButtonIfSupported,
       };
 
+      const CONTINUOUS_MS = 150;
+
       await html5QrCode.start(
         { facingMode: 'environment' },
         config,
-        async (decodedText: string) => {
+        (decodedText: string) => {
           if (processingRef.current) return;
-          processingRef.current = true;
-          stopScanning();
+          setTimeout(async () => {
+            if (processingRef.current) return;
+            processingRef.current = true;
+            if (!standalone) stopScanning();
 
-          try {
-            const result = await apiService.checkInAttendee(decodedText);
-            setScanResult(result);
-            playSound(result.success ? 'success' : 'error');
+            try {
+              const result = await apiService.checkInAttendee(decodedText);
+              setScanResult(result);
+              const ftype = feedbackTypeFromResult(result);
+              provideFeedback(ftype, result.message, setAnnouncement);
 
-            if (result.success) {
-              toast.success(result.message);
-              onCheckIn?.();
-            } else {
-              toast.error(result.message);
+              if (result.success) {
+                toast.success(result.message);
+                onCheckIn?.();
+              } else {
+                toast.error(result.message);
+              }
+            } catch (error) {
+              console.error('Check-in error:', error);
+              provideFeedback('error', 'Check-in failed', setAnnouncement);
+              setScanResult({
+                success: false,
+                message: 'Check-in failed',
+              });
+              toast.error('Check-in failed');
+            } finally {
+              if (!standalone) processingRef.current = false;
             }
-          } catch (error) {
-            console.error('Check-in error:', error);
-            playSound('error');
-            toast.error('Check-in failed');
-          } finally {
-            processingRef.current = false;
-          }
+          }, CONTINUOUS_MS);
         },
         () => {}
       );
@@ -105,6 +128,11 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
     };
   }, []);
 
+  const handleScanNext = () => {
+    setScanResult(null);
+    processingRef.current = false;
+  };
+
   const readerEl = (
     <div
       id="reader"
@@ -122,6 +150,18 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
           </p>
         </div>
       )}
+    </div>
+  );
+
+  const ariaLiveEl = (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic
+      className="sr-only"
+      key={announcement}
+    >
+      {announcement}
     </div>
   );
 
@@ -201,20 +241,62 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
     </div>
   );
 
+  const resultOverlay =
+    standalone && scanResult ? (
+      <div
+        className={`fixed inset-0 z-50 flex flex-col items-center justify-center px-4 ${
+          scanResult.success
+            ? 'bg-green-500'
+            : scanResult.alreadyCheckedIn
+              ? 'bg-amber-500'
+              : 'bg-red-500'
+        }`}
+      >
+        <div className="text-white text-center max-w-sm">
+          {scanResult.success ? (
+            <CheckCircle2 className="h-20 w-20 mx-auto mb-4" aria-hidden />
+          ) : scanResult.alreadyCheckedIn ? (
+            <AlertCircle className="h-20 w-20 mx-auto mb-4" aria-hidden />
+          ) : (
+            <X className="h-20 w-20 mx-auto mb-4" aria-hidden />
+          )}
+          <p className="text-xl font-semibold mb-2">
+            {scanResult.success
+              ? 'Checked in'
+              : scanResult.alreadyCheckedIn
+                ? 'Already checked in'
+                : 'Invalid code'}
+          </p>
+          <p className="text-white/90 text-lg">{scanResult.message}</p>
+        </div>
+        <Button
+          onClick={handleScanNext}
+          variant="secondary"
+          size="lg"
+          className="mt-8 min-w-[200px]"
+        >
+          Scan next
+        </Button>
+      </div>
+    ) : null;
+
   if (standalone) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100">
+        {ariaLiveEl}
         <div className="w-full max-w-md space-y-4 px-4">
           {readerEl}
           {buttons}
           {errorEl}
         </div>
+        {resultOverlay}
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {ariaLiveEl}
       <Card>
         <CardHeader>
           <CardTitle>QR Code Scanner</CardTitle>
@@ -244,39 +326,56 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
               className={`p-4 rounded-lg ${
                 scanResult.success
                   ? 'bg-green-50 border border-green-200'
-                  : 'bg-red-50 border border-red-200'
+                  : scanResult.alreadyCheckedIn
+                    ? 'bg-amber-50 border border-amber-200'
+                    : 'bg-red-50 border border-red-200'
               }`}
             >
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle2
-                  className={`h-5 w-5 ${
-                    scanResult.success ? 'text-green-600' : 'text-red-600'
-                  }`}
-                />
+                {scanResult.success ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : scanResult.alreadyCheckedIn ? (
+                  <AlertCircle className="h-5 w-5 text-amber-600" />
+                ) : (
+                  <X className="h-5 w-5 text-red-600" />
+                )}
                 <p
                   className={`font-medium ${
                     scanResult.success
                       ? 'text-green-800'
-                      : 'text-red-800'
+                      : scanResult.alreadyCheckedIn
+                        ? 'text-amber-800'
+                        : 'text-red-800'
                   }`}
                 >
                   {scanResult.success
                     ? 'Check-in Successful!'
-                    : 'Check-in Failed'}
+                    : scanResult.alreadyCheckedIn
+                      ? 'Already Checked In'
+                      : 'Check-in Failed'}
                 </p>
               </div>
               <p
                 className={`text-sm ${
-                  scanResult.success ? 'text-green-700' : 'text-red-700'
+                  scanResult.success
+                    ? 'text-green-700'
+                    : scanResult.alreadyCheckedIn
+                      ? 'text-amber-700'
+                      : 'text-red-700'
                 }`}
               >
                 {scanResult.message}
               </p>
-              {scanResult.success && scanResult.event && (
-                <p className="text-sm text-green-700 mt-1">
-                  Event: {scanResult.event.name}
-                </p>
-              )}
+              {(scanResult.success || scanResult.alreadyCheckedIn) &&
+                scanResult.event && (
+                  <p
+                    className={`text-sm mt-1 ${
+                      scanResult.success ? 'text-green-700' : 'text-amber-700'
+                    }`}
+                  >
+                    Event: {scanResult.event.name}
+                  </p>
+                )}
               {scanResult.attendee && (
                 <div className="mt-4 pt-4 border-t border-current border-opacity-20">
                   <p className="text-sm font-medium mb-2">Attendee Details:</p>

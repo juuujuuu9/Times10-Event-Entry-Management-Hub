@@ -91,8 +91,10 @@ class ApiService {
     if (res.status === 409) {
       return {
         success: false,
+        alreadyCheckedIn: true,
         attendee: body.attendee,
-        message: body.attendee?.message || body.error || 'Already checked in',
+        event: body.event,
+        message: body.message || body.error || 'Already checked in',
       };
     }
     throw new Error(body.error || `HTTP ${res.status}`);

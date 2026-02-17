@@ -1,14 +1,14 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import ScannerLayout from '../layouts/ScannerLayout.astro';
 import { CheckInScanner } from '../components/CheckInScanner';
 import { Toaster } from '../components/ui/sonner';
 ---
 
-<Layout title="Check-in Scanner">
+<ScannerLayout>
   <div class="min-h-screen">
     <main class="min-h-screen">
       <CheckInScanner client:load standalone={true} />
     </main>
     <Toaster client:load position="top-center" richColors />
   </div>
-</Layout>
+</ScannerLayout>

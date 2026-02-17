@@ -1,0 +1,21 @@
+---
+import '../styles/global.css';
+const title = 'Check-in Scanner';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <link rel="preload" as="audio" href="/sounds/success.mp3" />
+    <link rel="preload" as="audio" href="/sounds/error.mp3" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

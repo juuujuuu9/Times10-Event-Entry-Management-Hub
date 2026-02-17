@@ -31,6 +31,8 @@ export interface RSVPFormData {
 
 export interface CheckInResult {
   success: boolean;
+  /** When true, 409 — already checked in (traffic light yellow). */
+  alreadyCheckedIn?: boolean;
   attendee?: Attendee;
   event?: { id: string; name: string };
   message: string;

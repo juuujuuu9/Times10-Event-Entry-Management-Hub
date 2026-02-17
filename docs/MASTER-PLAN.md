@@ -2,7 +2,7 @@
 
 **Purpose:** Single source of truth for development progress. Use as the dev checklist; update when completing work; reference from other docs. Feeds into later documentation.
 
-**Last updated:** 2026-02-16 (CSV import as primary microsite sync)
+**Last updated:** 2026-02-17 (scanner feedback: traffic light, audio/haptic, overlay)
 
 ---
 
@@ -26,8 +26,8 @@
 | PII in QR | **Done** | QR is `id:qr_token` only; no email in payload. |
 | Google login (staff / admin) | **Done** | Option B: middleware, auth-astro, /admin, /scanner, /login; STAFF_EMAILS/ADMIN_EMAILS allowlist. |
 | Manual override (search by name) | Missing | Scanner has no "check in by name". |
-| Traffic light UI (Green/Yellow/Red) | Partial | Green/red only; 409 not styled as yellow. |
-| Audio / haptic feedback | Missing | No vibrate or beep on success. |
+| Traffic light UI (Green/Yellow/Red) | Done | Green/amber/red; 409 = yellow (already checked in). CheckInScanner + api/checkin. |
+| Audio / haptic feedback | Done | Preload + vibrate + success/error/already tones; aria-live. src/lib/feedback.ts, CheckInScanner. |
 | Target overlay / distance hint | Partial | qrbox exists; no "6–10 inches" staff hint. |
 | Flashlight / torch | Partial | `showTorchButtonIfSupported: true`; verify on device. |
 | Hardware scanner (keyboard wedge) | Missing | No hidden input for laser scanners. |
@@ -66,7 +66,8 @@ Follow this order; check off and date as you complete each item.
 
 ### 5. Traffic light UI + audio/haptic + distance hint
 
-- [ ] **Green** — success; **Yellow** — already checked in (409); **Red** — invalid/not found. Add vibrate + success beep; add "6–10 inches" hint for staff; verify torch visibility.
+- [x] **Done.** Green — success; Yellow (amber) — already checked in (409); Red — invalid/not found. Vibrate + preloaded audio + aria-live; standalone overlay + "Scan next"; 150 ms delay; continuous scanning on /scanner. `src/lib/feedback.ts`, `CheckInScanner.tsx`, `api/checkin` 409 body.
+- [ ] **Remaining:** "6–10 inches" distance hint for staff; verify torch visibility.
 
 ### 6. Hardware scanner (keyboard wedge)
 

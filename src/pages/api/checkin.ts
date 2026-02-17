@@ -87,8 +87,16 @@ export const POST: APIRoute = async ({ request }) => {
       }
       if (existing?.qrUsedAt || existing?.checkedIn) {
         logCheckInAttempt({ ip, outcome: 'replay_attempt', attendeeId: entryId });
+        const message = existing
+          ? `Already checked in: ${existing.firstName} ${existing.lastName}`
+          : 'QR code already used';
         return new Response(
-          JSON.stringify({ error: 'QR code already used' }),
+          JSON.stringify({
+            alreadyCheckedIn: true,
+            attendee: existing,
+            event: { id: event.id, name: event.name },
+            message,
+          }),
           { status: 409, headers: { 'Content-Type': 'application/json' } }
         );
       }
