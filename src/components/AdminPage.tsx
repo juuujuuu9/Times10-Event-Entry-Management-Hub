@@ -106,6 +106,12 @@ export function AdminPage({
             ))}
           </select>
           <a
+            href="/admin/events"
+            className="rounded border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+          >
+            Manage events
+          </a>
+          <a
             href="/admin/events/new"
             className="text-sm text-[#d63a2e] hover:underline"
           >

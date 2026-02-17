@@ -98,6 +98,8 @@ Follow this order; check off and date as you complete each item.
 |-----|--------|
 | [STEP-1-QR-SECURITY-PLAN.md](STEP-1-QR-SECURITY-PLAN.md) | Item 1: UUID, token-only QR, rate limit, audit, migration. |
 | [STEP-2-CENTRAL-HUB.md](STEP-2-CENTRAL-HUB.md) | Item 3: Central hub, events, CSV import (primary), webhook optional. |
+| [FORM-MICROSITE-SETUP.md](FORM-MICROSITE-SETUP.md) | Linking a form microsite to the hub; copying Cursor rule into new projects. |
+| [form-microsite-hub-integration.mdc](form-microsite-hub-integration.mdc) | Portable Cursor rule: copy to new microsite’s `.cursor/rules/` for hub integration context. |
 | (This implementation) | Item 2: auth-astro, middleware, login.astro, staff allowlist (src/lib/staff.ts). |
 
 ---

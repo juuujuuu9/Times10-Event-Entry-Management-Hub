@@ -25,6 +25,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  ArrowDown,
+  ArrowUp,
   CheckCircle2,
   Loader2,
   QrCode,
@@ -40,6 +42,10 @@ import type { Attendee } from '@/types/attendee';
 import { apiService } from '@/services/api';
 import { QR_GENERATION } from '@/config/qr';
 import QRCode from 'qrcode';
+
+function formatNameLastFirst(attendee: Attendee): string {
+  return `${attendee.lastName}, ${attendee.firstName}`;
+}
 
 interface AdminDashboardProps {
   attendees: Attendee[];
@@ -60,6 +66,7 @@ export function AdminDashboard({
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [importing, setImporting] = useState(false);
+  const [sortDescending, setSortDescending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredAttendees = attendees.filter(
@@ -71,6 +78,12 @@ export function AdminDashboard({
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
   );
+
+  const sortedAttendees = [...filteredAttendees].sort((a, b) => {
+    const cmp = a.lastName.localeCompare(b.lastName, undefined, { sensitivity: 'base' })
+      || a.firstName.localeCompare(b.firstName, undefined, { sensitivity: 'base' });
+    return sortDescending ? -cmp : cmp;
+  });
 
   const exportToCSV = () => {
     const headers = [
@@ -86,7 +99,7 @@ export function AdminDashboard({
     ];
     const csvContent = [
       headers.join(','),
-      ...filteredAttendees.map((attendee) =>
+      ...sortedAttendees.map((attendee) =>
         [
           attendee.firstName,
           attendee.lastName,
@@ -265,7 +278,21 @@ export function AdminDashboard({
             <Table className="min-w-[700px] w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="-ml-2 h-8 font-semibold"
+                      onClick={() => setSortDescending((d) => !d)}
+                    >
+                      Name
+                      {sortDescending ? (
+                        <ArrowDown className="ml-1 h-4 w-4" />
+                      ) : (
+                        <ArrowUp className="ml-1 h-4 w-4" />
+                      )}
+                    </Button>
+                  </TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Status</TableHead>
@@ -274,10 +301,10 @@ export function AdminDashboard({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAttendees.map((attendee) => (
+                {sortedAttendees.map((attendee) => (
                   <TableRow key={attendee.id}>
                     <TableCell className="font-medium">
-                      {attendee.firstName} {attendee.lastName}
+                      {formatNameLastFirst(attendee)}
                     </TableCell>
                     <TableCell>{attendee.email}</TableCell>
                     <TableCell>{attendee.company || '-'}</TableCell>
@@ -326,8 +353,7 @@ export function AdminDashboard({
           <DialogHeader>
             <DialogTitle>QR Code</DialogTitle>
             <DialogDescription>
-              QR code for {selectedAttendee?.firstName}{' '}
-              {selectedAttendee?.lastName}
+              QR code for {selectedAttendee && formatNameLastFirst(selectedAttendee)}
             </DialogDescription>
           </DialogHeader>
           {selectedAttendee && (

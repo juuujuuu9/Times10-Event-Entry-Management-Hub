@@ -27,6 +27,15 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCodeRef = useRef<{ stop: () => Promise<void> } | null>(null);
 
+  const playSound = (kind: 'success' | 'error') => {
+    try {
+      const audio = new Audio(`/sounds/${kind}.mp3`);
+      audio.play().catch(() => {});
+    } catch {
+      // ignore
+    }
+  };
+
   const startScanning = async () => {
     try {
       setScanning(true);
@@ -55,6 +64,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
           try {
             const result = await apiService.checkInAttendee(decodedText);
             setScanResult(result);
+            playSound(result.success ? 'success' : 'error');
 
             if (result.success) {
               toast.success(result.message);
@@ -64,6 +74,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
             }
           } catch (error) {
             console.error('Check-in error:', error);
+            playSound('error');
             toast.error('Check-in failed');
           } finally {
             processingRef.current = false;

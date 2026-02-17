@@ -293,3 +293,11 @@ export async function createEvent(data: {
   `;
   return { id, ...data };
 }
+
+/** Delete an event and all its attendees. */
+export async function deleteEvent(id: string): Promise<boolean> {
+  const db = getDb();
+  await db`DELETE FROM attendees WHERE event_id = ${id}`;
+  const rows = await db`DELETE FROM events WHERE id = ${id} RETURNING id`;
+  return rows.length > 0;
+}
