@@ -15,5 +15,6 @@ export function getSignOutUrl(fallbackOrigin?: string): string {
   const origin = getCanonicalOrigin(fallbackOrigin);
   if (!origin) return '/api/auth/signout';
   const callbackUrl = encodeURIComponent(`${origin}/`);
-  return `/api/auth/signout?callbackUrl=${callbackUrl}`;
+  // Use absolute URL when we have AUTH_URL so the link doesn't resolve to localhost.
+  return `${origin}/api/auth/signout?callbackUrl=${callbackUrl}`;
 }
