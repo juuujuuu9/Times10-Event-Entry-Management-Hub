@@ -5,7 +5,7 @@ import { getAllEvents } from '../../lib/db';
 import { getSignOutUrl } from '../../lib/auth-url';
 
 const { user } = Astro.locals;
-const signOutUrl = getSignOutUrl(Astro.url.origin);
+const signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
 const events = await getAllEvents();
 const selectedEventId = Astro.url.searchParams.get('event') ?? '';
 ---

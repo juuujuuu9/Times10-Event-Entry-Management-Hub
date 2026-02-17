@@ -5,7 +5,7 @@ import { Toaster } from '../components/ui/sonner';
 import { getSignOutUrl } from '../lib/auth-url';
 
 const { user } = Astro.locals;
-const signOutUrl = getSignOutUrl(Astro.url.origin);
+const signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
 ---
 
 <Layout title="Check-in Scanner">
