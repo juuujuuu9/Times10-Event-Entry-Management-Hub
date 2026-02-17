@@ -4,8 +4,8 @@
  */
 export function getCanonicalOrigin(request?: Request, fallbackOrigin?: string): string {
   const authUrl =
-    (typeof process !== 'undefined' && process.env?.AUTH_URL) ||
-    (typeof import.meta !== 'undefined' && (import.meta.env?.AUTH_URL as string));
+    (typeof process !== 'undefined' && (process.env?.AUTH_URL || process.env?.NEXTAUTH_URL)) ||
+    (typeof import.meta !== 'undefined' && ((import.meta.env?.AUTH_URL as string) || (import.meta.env?.NEXTAUTH_URL as string)));
   if (authUrl) return new URL(authUrl).origin;
 
   // Vercel: use Host/X-Forwarded-Host — Astro.url can be localhost.
@@ -17,10 +17,39 @@ export function getCanonicalOrigin(request?: Request, fallbackOrigin?: string): 
   return fallbackOrigin ?? '';
 }
 
-/** Sign-out URL with callbackUrl so redirect uses canonical origin (fixes localhost on Vercel). */
+/**
+ * Relative sign-out path with callbackUrl. Always use relative URL so the browser
+ * never navigates to an absolute localhost URL (Vercel can set Astro.url.origin to localhost).
+ */
 export function getSignOutUrl(request?: Request, fallbackOrigin?: string): string {
   const origin = getCanonicalOrigin(request, fallbackOrigin);
-  if (!origin || origin.includes('localhost')) return '/api/auth/signout';
-  const callbackUrl = encodeURIComponent(`${origin}/`);
-  return `${origin}/api/auth/signout?callbackUrl=${callbackUrl}`;
+  const callback =
+    origin && !origin.includes('localhost') ? `${origin}/` : '/';
+  return `/api/auth/signout?callbackUrl=${encodeURIComponent(callback)}`;
+}
+
+/**
+ * Props for a POST form that signs out without loading the GET signout page
+ * (that page’s form action can be wrong on Vercel). Use when AUTH_URL/NEXTAUTH_URL
+ * is set so we can fetch the CSRF token from the canonical origin.
+ */
+export async function getSignOutFormProps(
+  request: Request
+): Promise<{ action: string; callbackUrl: string; csrfToken: string } | null> {
+  const origin = getCanonicalOrigin(request);
+  if (!origin || origin.includes('localhost')) return null;
+  try {
+    const res = await fetch(`${origin}/api/auth/csrf`, {
+      headers: { cookie: request.headers.get('cookie') ?? '' },
+    });
+    const data = (await res.json()) as { csrfToken?: string };
+    if (!data?.csrfToken) return null;
+    return {
+      action: '/api/auth/signout',
+      callbackUrl: `${origin}/`,
+      csrfToken: data.csrfToken,
+    };
+  } catch {
+    return null;
+  }
 }

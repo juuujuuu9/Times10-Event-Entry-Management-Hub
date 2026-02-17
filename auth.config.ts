@@ -3,10 +3,10 @@ import Google from '@auth/core/providers/google';
 import { getStaffRole } from './src/lib/staff';
 
 // Force the OAuth redirect_uri when the request URL is wrong (e.g. Vercel infers localhost).
-// Set AUTH_URL in production (e.g. https://qrsuite.times10.net or https://qrsuite.times10.net/api/auth).
+// Set AUTH_URL (and NEXTAUTH_URL in production) so sign-out and callbacks use the canonical origin.
 const authUrl =
-  (typeof process !== 'undefined' && process.env?.AUTH_URL) ||
-  (typeof import.meta !== 'undefined' && (import.meta.env?.AUTH_URL as string));
+  (typeof process !== 'undefined' && (process.env?.AUTH_URL || process.env?.NEXTAUTH_URL)) ||
+  (typeof import.meta !== 'undefined' && ((import.meta.env?.AUTH_URL as string) || (import.meta.env?.NEXTAUTH_URL as string)));
 const authBase = authUrl
   ? authUrl.endsWith('/api/auth')
     ? authUrl
@@ -14,6 +14,8 @@ const authBase = authUrl
   : undefined;
 
 export default defineConfig({
+  basePath: '/api/auth',
+  trustHost: true,
   ...(authBase && { redirectProxyUrl: authBase }),
   providers: [
     Google({
@@ -28,8 +30,9 @@ export default defineConfig({
   ],
   callbacks: {
     redirect({ url, baseUrl }) {
-      // Catch-all: use canonical origin when AUTH_URL is set (fixes localhost redirects on Vercel).
-      const origin = authUrl ? new URL(authUrl).origin : baseUrl;
+      // Use AUTH_URL/NEXTAUTH_URL when set so redirects never go to localhost on Vercel.
+      const productionUrl = authUrl ?? baseUrl;
+      const origin = productionUrl ? new URL(productionUrl).origin : baseUrl;
       if (url.startsWith('/')) return `${origin}${url}`;
       try {
         if (new URL(url).origin === origin) return url;

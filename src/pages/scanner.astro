@@ -2,10 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import { CheckInScanner } from '../components/CheckInScanner';
 import { Toaster } from '../components/ui/sonner';
-import { getSignOutUrl } from '../lib/auth-url';
+import { getSignOutUrl, getSignOutFormProps } from '../lib/auth-url';
 
 const { user } = Astro.locals;
 const signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
+const signOutForm = await getSignOutFormProps(Astro.request);
 ---
 
 <Layout title="Check-in Scanner">
@@ -18,7 +19,15 @@ const signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
         </div>
         <div class="flex items-center gap-4">
           <span class="text-sm text-slate-300">{user?.name ?? user?.email ?? 'Staff'}</span>
-          <a href={signOutUrl} class="text-sm text-red-400 hover:text-red-300">Sign out</a>
+          {signOutForm ? (
+            <form action={signOutForm.action} method="POST" class="inline">
+              <input type="hidden" name="callbackUrl" value={signOutForm.callbackUrl} />
+              <input type="hidden" name="csrfToken" value={signOutForm.csrfToken} />
+              <button type="submit" class="text-sm text-red-400 hover:text-red-300 bg-transparent border-none cursor-pointer p-0 font-inherit">Sign out</button>
+            </form>
+          ) : (
+            <a href={signOutUrl} class="text-sm text-red-400 hover:text-red-300">Sign out</a>
+          )}
         </div>
       </div>
     </header>

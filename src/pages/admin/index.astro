@@ -2,10 +2,11 @@
 import Layout from '../../layouts/Layout.astro';
 import { AdminPage } from '../../components/AdminPage';
 import { getAllEvents } from '../../lib/db';
-import { getSignOutUrl } from '../../lib/auth-url';
+import { getSignOutUrl, getSignOutFormProps } from '../../lib/auth-url';
 
 const { user } = Astro.locals;
 const signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
+const signOutForm = await getSignOutFormProps(Astro.request);
 const events = await getAllEvents();
 const selectedEventId = Astro.url.searchParams.get('event') ?? '';
 ---
@@ -29,7 +30,15 @@ const selectedEventId = Astro.url.searchParams.get('event') ?? '';
           </div>
           <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600">{user?.name ?? user?.email ?? 'Staff'}</span>
-            <a href={signOutUrl} class="text-sm text-slate-600 hover:text-[#d63a2e]">Sign out</a>
+            {signOutForm ? (
+              <form action={signOutForm.action} method="POST" class="inline">
+                <input type="hidden" name="callbackUrl" value={signOutForm.callbackUrl} />
+                <input type="hidden" name="csrfToken" value={signOutForm.csrfToken} />
+                <button type="submit" class="text-sm text-slate-600 hover:text-[#d63a2e] bg-transparent border-none cursor-pointer p-0 font-inherit">Sign out</button>
+              </form>
+            ) : (
+              <a href={signOutUrl} class="text-sm text-slate-600 hover:text-[#d63a2e]">Sign out</a>
+            )}
           </div>
         </div>
       </div>
