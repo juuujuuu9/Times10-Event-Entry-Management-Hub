@@ -4,6 +4,7 @@ import {
   createAttendee,
   findAttendeeByEventAndEmail,
 } from '../../../lib/db';
+import { getOrCreateQRPayload } from '../../../lib/qr-token';
 
 /** Parse a single CSV line respecting quoted fields. */
 function parseCSVLine(line: string): string[] {
@@ -158,7 +159,7 @@ export const POST: APIRoute = async ({ request }) => {
         continue;
       }
 
-      await createAttendee({
+      const attendee = await createAttendee({
         eventId,
         firstName: fields.firstName,
         lastName: fields.lastName,
@@ -168,6 +169,7 @@ export const POST: APIRoute = async ({ request }) => {
         dietaryRestrictions: fields.dietaryRestrictions,
         sourceData: Object.keys(sourceData).length ? sourceData : undefined,
       });
+      await getOrCreateQRPayload(attendee.id, eventId);
       imported += 1;
     }
 

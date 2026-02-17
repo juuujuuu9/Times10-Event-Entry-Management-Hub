@@ -238,26 +238,19 @@ export async function deleteAttendee(id: string) {
   return rows.length > 0;
 }
 
+/** Set qr_token and qr_expires_at for an attendee. Always updates by id so token is persisted. */
 export async function updateAttendeeQRToken(
   id: string,
   token: string,
   expiresAt: Date,
-  eventId?: string
+  _eventId?: string
 ) {
   const db = getDb();
-  if (eventId != null) {
-    await db`
-      UPDATE attendees
-      SET qr_token = ${token}, qr_expires_at = ${expiresAt}
-      WHERE id = ${id} AND event_id = ${eventId}
-    `;
-  } else {
-    await db`
-      UPDATE attendees
-      SET qr_token = ${token}, qr_expires_at = ${expiresAt}
-      WHERE id = ${id}
-    `;
-  }
+  await db`
+    UPDATE attendees
+    SET qr_token = ${token}, qr_expires_at = ${expiresAt}
+    WHERE id = ${id}
+  `;
 }
 
 export async function findAttendeeByEventAndMicrositeId(

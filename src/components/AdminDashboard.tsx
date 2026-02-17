@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/table';
 import {
   CheckCircle2,
+  Loader2,
   QrCode,
   Users,
   Search,
@@ -233,7 +234,11 @@ export function AdminDashboard({
               disabled={importing}
               onClick={() => fileInputRef.current?.click()}
             >
-              <Upload className="h-4 w-4 mr-2" />
+              {importing ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4 mr-2" />
+              )}
               {importing ? 'Importing…' : 'Import CSV'}
             </Button>
           </>

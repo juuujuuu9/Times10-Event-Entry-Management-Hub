@@ -12,7 +12,8 @@
     "astro": "astro",
     "setup-db": "node scripts/setup-tables.mjs",
     "migrate-qr": "node scripts/migrate-qr-security.mjs",
-    "migrate-events": "node scripts/migrate-events.mjs"
+    "migrate-events": "node scripts/migrate-events.mjs",
+    "wipe-events": "node scripts/wipe-events.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",

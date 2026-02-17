@@ -56,7 +56,7 @@ export const POST: APIRoute = async ({ request }) => {
     const msg = (err as Error)?.message || '';
     if (msg.includes('unique') || msg.includes('duplicate')) {
       return new Response(
-        JSON.stringify({ error: 'Email already registered' }),
+        JSON.stringify({ error: 'This email is already registered for this event' }),
         { status: 409, headers: { 'Content-Type': 'application/json' } }
       );
     }

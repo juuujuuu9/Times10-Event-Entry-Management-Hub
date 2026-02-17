@@ -135,6 +135,14 @@ async function main() {
       } else throw e;
     }
     try {
+      await sql`ALTER TABLE attendees DROP CONSTRAINT IF EXISTS attendees_email_unique`;
+      console.log('Dropped attendees_email_unique if present');
+    } catch (e) {
+      if (e.code === '42703' || e.message?.includes('constraint')) {
+        console.log('No attendees_email_unique constraint to drop');
+      } else throw e;
+    }
+    try {
       await sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_attendees_event_email ON attendees(event_id, email)`;
       console.log('Unique index event_id+email ready');
     } catch (e) {

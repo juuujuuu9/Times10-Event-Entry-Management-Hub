@@ -192,8 +192,8 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
 
   if (standalone) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4">
-        <div className="w-full max-w-md space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100">
+        <div className="w-full max-w-md space-y-4 px-4">
           {readerEl}
           {buttons}
           {errorEl}

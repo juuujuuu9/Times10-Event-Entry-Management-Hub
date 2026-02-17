@@ -27,13 +27,16 @@ export function AdminPage({
 }: AdminPageProps) {
   const [attendees, setAttendees] = useState<Attendee[]>(initialAttendees);
   const [eventId, setEventId] = useState(selectedEventId);
-  const [loading, setLoading] = useState(!initialAttendees.length);
+  const [loading, setLoading] = useState(Boolean(selectedEventId && !initialAttendees.length));
   const [error, setError] = useState<string | null>(null);
 
-  const loadAttendees = useCallback(async (eid?: string) => {
+  const loadAttendees = useCallback(async (eid?: string, options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? false;
     try {
-      setLoading(true);
-      setError(null);
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      }
       const data = await apiService.getAllAttendees(eid || undefined);
       setAttendees(data);
     } catch (err) {
@@ -49,10 +52,10 @@ export function AdminPage({
       } else if (err instanceof Error && (err as Error).message) {
         message = (err as Error).message;
       }
-      setError(message);
+      if (!silent) setError(message);
       toast.error(message);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -61,7 +64,12 @@ export function AdminPage({
   }, [selectedEventId]);
 
   useEffect(() => {
-    loadAttendees(eventId || undefined);
+    if (!eventId) {
+      setAttendees([]);
+      setLoading(false);
+      return;
+    }
+    loadAttendees(eventId);
   }, [eventId, loadAttendees]);
 
   const onEventChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -82,7 +90,7 @@ export function AdminPage({
       {events.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center gap-4">
           <label htmlFor="event-select" className="text-sm font-medium text-slate-700">
-            Event
+            Event:
           </label>
           <select
             id="event-select"
@@ -90,7 +98,7 @@ export function AdminPage({
             onChange={onEventChange}
             className="rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
           >
-            <option value="">All events</option>
+            <option value="">Select Event</option>
             {events.map((ev) => (
               <option key={ev.id} value={ev.id}>
                 {ev.name}
@@ -116,7 +124,7 @@ export function AdminPage({
           <p>{error}</p>
           <button
             type="button"
-            onClick={() => loadAttendees(eventId || undefined)}
+            onClick={() => eventId && loadAttendees(eventId)}
             className="mt-2 text-sm font-medium underline"
           >
             Retry
@@ -127,7 +135,7 @@ export function AdminPage({
         <AdminDashboard
           attendees={attendees}
           eventId={eventId || undefined}
-          onRefresh={() => loadAttendees(eventId || undefined)}
+          onRefresh={() => eventId && loadAttendees(eventId, { silent: true })}
         />
       )}
     </>

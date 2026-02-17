@@ -27,7 +27,9 @@ Landing Page (Microsite)  ----webhook---->  Central Hub (this project)  <----  S
 ## Schema summary
 
 - **events:** `id` (UUID), `name`, `slug` (UNIQUE), `microsite_url`, `settings` (JSONB: e.g. `qr_enabled`, `qr_send_email`, optional `webhook_secret` for per-event keys), `created_at`.
-- **attendees:** Existing columns plus `event_id` (FK to events), `microsite_entry_id`, `source_data` (JSONB), `created_at`. Unique index on `(event_id, microsite_entry_id)` where `microsite_entry_id IS NOT NULL` for idempotency.
+- **attendees:** Existing columns plus `event_id` (FK to events), `microsite_entry_id`, `source_data` (JSONB), `created_at`. Unique index on `(event_id, microsite_entry_id)` where `microsite_entry_id IS NOT NULL` for idempotency. **Same email in different events (lists) is allowed:** uniqueness is per event via `UNIQUE(event_id, email)`; the migration drops any global `UNIQUE(email)` so one person can register for multiple events.
+
+**If you see "Email already registered" when adding the same email to a different event:** run `npm run migrate-events` so the DB uses per-event uniqueness only (and ensure RSVP/API pass `eventId` when creating attendees).
 
 ---
 

@@ -2,36 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import { CheckInScanner } from '../components/CheckInScanner';
 import { Toaster } from '../components/ui/sonner';
-import { getSignOutUrl, getSignOutFormProps } from '../lib/auth-url';
-
-const { user } = Astro.locals;
-const signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
-const signOutForm = await getSignOutFormProps(Astro.request);
 ---
 
 <Layout title="Check-in Scanner">
-  <div class="min-h-screen bg-slate-900 text-white">
-    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <div class="flex items-center gap-4">
-          <h1 class="text-xl font-bold">Check-in Scanner</h1>
-          <a href="/admin" class="text-sm text-slate-300 hover:text-white">Admin</a>
-        </div>
-        <div class="flex items-center gap-4">
-          <span class="text-sm text-slate-300">{user?.name ?? user?.email ?? 'Staff'}</span>
-          {signOutForm ? (
-            <form action={signOutForm.action} method="POST" class="inline">
-              <input type="hidden" name="callbackUrl" value={signOutForm.callbackUrl} />
-              <input type="hidden" name="csrfToken" value={signOutForm.csrfToken} />
-              <button type="submit" class="text-sm text-red-400 hover:text-red-300 bg-transparent border-none cursor-pointer p-0 font-inherit">Sign out</button>
-            </form>
-          ) : (
-            <a href={signOutUrl} class="text-sm text-red-400 hover:text-red-300">Sign out</a>
-          )}
-        </div>
-      </div>
-    </header>
-    <main class="p-4">
+  <div class="min-h-screen">
+    <main class="min-h-screen">
       <CheckInScanner client:load standalone={true} />
     </main>
     <Toaster client:load position="top-center" richColors />
