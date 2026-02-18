@@ -1,6 +1,6 @@
 # QR Check-In
 
-Event RSVP and check-in app: guests RSVP and receive a QR code; staff scan codes to check people in. **One repo**, **one deploy** (Vercel) — Astro for pages and API routes, no separate backend or CORS.
+Event RSVP and check-in app: guests RSVP and receive a QR code; staff scan codes to check people in. **One repo**, **one deploy** (Vercel) - Astro for pages and API routes, no separate backend or CORS.
 
 ## Requirements
 
@@ -32,9 +32,9 @@ Event RSVP and check-in app: guests RSVP and receive a QR code; staff scan codes
 
 ## Flow
 
-1. **RSVP** — Guest submits form → attendee stored in DB → QR code generated and shown (and optionally emailed via Resend).
-2. **Check-in** — Staff scans QR (camera or standalone `/scanner` page) → attendee marked checked-in.
-3. **Admin** — List attendees, search, delete, export CSV, resend QR emails.
+1. **RSVP** - Guest submits form → attendee stored in DB → QR code generated and shown (and optionally emailed via Resend).
+2. **Check-in** - Staff scans QR (camera or standalone `/scanner` page) → attendee marked checked-in.
+3. **Admin** - List attendees, search, delete, export CSV, resend QR emails.
 
 ## Tech Stack
 
@@ -51,7 +51,18 @@ Event RSVP and check-in app: guests RSVP and receive a QR code; staff scan codes
 
 ## Development & roadmap
 
-The **dev checklist and progress** live in **[docs/MASTER-PLAN.md](docs/MASTER-PLAN.md)**. Use it to track what’s done and what’s next; update it when you complete items. It’s the single reference for the roadmap and for later documentation.
+The **dev checklist and progress** live in **[docs/MASTER-PLAN.md](docs/MASTER-PLAN.md)**. Use it to track what's done and what's next; update it when you complete items. It's the single reference for the roadmap and for later documentation.
+
+## User Documentation
+
+End-user guides for event staff, organizers, and attendees:
+
+- **[QUICK-START.md](docs/QUICK-START.md)** — Get up and running in 5 minutes
+- **[USER-GUIDE.md](docs/USER-GUIDE.md)** — Complete guide for all user types
+- **[FAQ.md](docs/FAQ.md)** — Common questions and answers
+- **[STAFF-GUIDE.md](docs/STAFF-GUIDE.md)** — One-page day-of-event reference (print this!)
+
+See [docs/README.md](docs/README.md) for which document to give to which audience.
 
 ## Project Structure
 
@@ -79,7 +90,7 @@ scripts/
 | `FROM_NAME`      | Yes      | Sender display name |
 | `PORT`           | No       | Dev server port (default `4321`) |
 
-No `VITE_API_URL` or CORS — frontend and API are same-origin.
+No `VITE_API_URL` or CORS - frontend and API are same-origin.
 
 ## Scripts
 
@@ -89,6 +100,25 @@ No `VITE_API_URL` or CORS — frontend and API are same-origin.
 | `npm run build`   | Production build |
 | `npm run preview` | Preview production build locally |
 | `npm run setup-db`| Create/reset `attendees` table (reads `.env`) |
+| `npm run test:edge-cases` | Run API edge-case tests (dev server must be running) |
+| `npm run test:edge-cases:ci` | Start server, run tests, exit (single command) |
+| `npm run test:generate-csvs` | Generate 15 test CSV files for import testing |
+
+**Edge-case tests** require auth bypass. Either:
+
+```bash
+# Single command (recommended; no other dev server should be running)
+npm run test:edge-cases:ci
+```
+
+Or with two terminals:
+```bash
+# Terminal 1: start dev server with bypass
+BYPASS_AUTH_FOR_TESTS=true npm run dev
+
+# Terminal 2: run tests
+BYPASS_AUTH_FOR_TESTS=true npm run test:edge-cases
+```
 
 ## Routes
 

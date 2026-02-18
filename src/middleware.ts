@@ -71,6 +71,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     locals.isAdmin = role === 'admin';
     locals.isScanner = role === 'scanner' || role === 'admin';
 
+    // Dev-only: bypass auth when BYPASS_AUTH_FOR_TESTS and X-Test-Mode: 1 present
+    const testBypass =
+      process.env.BYPASS_AUTH_FOR_TESTS === 'true' &&
+      request.headers.get('X-Test-Mode') === '1';
+    if (testBypass) {
+      locals.isStaff = true;
+      locals.isAdmin = true;
+      locals.isScanner = true;
+    }
+
     if (!locals.isStaff) {
       if (isApiRequest(pathname)) {
         return new Response(
