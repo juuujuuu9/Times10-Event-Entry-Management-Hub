@@ -166,7 +166,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
   );
 
   const handleMobileScannerAction = () => {
-    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/scanner`;
+    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/`;
     const isMobile =
       typeof window !== 'undefined' &&
       (window.matchMedia('(pointer: coarse)').matches ||

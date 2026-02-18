@@ -12,14 +12,13 @@ async function getSessionSafe(request: Request): Promise<Awaited<ReturnType<type
 }
 
 const PUBLIC_PATH_PATTERNS = [
-  /^\/$/,
   /^\/login$/,
   /^\/api\/auth\//,
   /^\/_astro\//,
   /^\/favicon\.(ico|svg)$/,
 ];
 
-const STAFF_PAGE_PATTERNS = [/^\/admin(\/|$)/, /^\/scanner(\/|$)/];
+const STAFF_PAGE_PATTERNS = [/^\/$/, /^\/admin(\/|$)/, /^\/scanner(\/|$)/];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATH_PATTERNS.some((p) => p.test(pathname));

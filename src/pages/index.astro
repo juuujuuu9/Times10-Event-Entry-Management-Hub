@@ -1,7 +1,14 @@
 ---
-const user = Astro.locals.user;
-if (!user) {
-  return Astro.redirect('/login');
-}
-return Astro.redirect('/admin');
+import ScannerLayout from '../layouts/ScannerLayout.astro';
+import { CheckInScanner } from '../components/CheckInScanner';
+import { Toaster } from '../components/ui/sonner';
 ---
+
+<ScannerLayout>
+  <div class="min-h-screen">
+    <main class="min-h-screen">
+      <CheckInScanner client:load standalone={true} />
+    </main>
+    <Toaster client:load position="top-center" richColors />
+  </div>
+</ScannerLayout>
