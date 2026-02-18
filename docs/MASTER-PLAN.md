@@ -2,7 +2,7 @@
 
 **Purpose:** Single source of truth for development progress. Use as the dev checklist; update when completing work; reference from other docs. Feeds into later documentation.
 
-**Last updated:** 2026-02-18 (Manual check-in by name)
+**Last updated:** 2026-02-18 (Step 5: distance hint + torch)
 
 ---
 
@@ -28,8 +28,8 @@
 | Manual override (search by name) | **Done** | CheckInScanner "Check in by name" search; GET /api/attendees?q=; POST /api/checkin { attendeeId }. |
 | Traffic light UI (Green/Yellow/Red) | Done | Green/amber/red; 409 = yellow (already checked in). CheckInScanner + api/checkin. |
 | Audio / haptic feedback | Done | Preload + vibrate + success/error/already tones; aria-live. src/lib/feedback.ts, CheckInScanner. |
-| Target overlay / distance hint | Partial | qrbox exists; no "6–10 inches" staff hint. |
-| Flashlight / torch | Partial | `showTorchButtonIfSupported: true`; verify on device. |
+| Target overlay / distance hint | **Done** | "6–10 inches" hint when scanning; qrbox. |
+| Flashlight / torch | **Done** | Custom torch button via getRunningTrackCameraCapabilities when supported. |
 | Hardware scanner (keyboard wedge) | Missing | No hidden input for laser scanners. |
 | Stolen screenshot / scan count | Missing | No "duplicate use" visibility in admin/scanner. |
 | Brightness / high-contrast QR | Partial | Email copy exists; QR config not explicit. |
@@ -73,7 +73,7 @@ Follow this order; check off and date as you complete each item.
 ### 5. Traffic light UI + audio/haptic + distance hint
 
 - [x] **Done.** Green — success; Yellow (amber) — already checked in (409); Red — invalid/not found. Vibrate + preloaded audio + aria-live; standalone overlay + "Scan next"; 150 ms delay; continuous scanning on /scanner. `src/lib/feedback.ts`, `CheckInScanner.tsx`, `api/checkin` 409 body.
-- [ ] **Remaining:** "6–10 inches" distance hint for staff; verify torch visibility.
+- [x] **Done.** "6–10 inches" distance hint when scanning; custom torch button when device supports it (getRunningTrackCameraCapabilities).
 
 ### 6. Hardware scanner (keyboard wedge)
 

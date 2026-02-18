@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Camera, X, RotateCcw, CheckCircle2, QrCode, Copy, AlertCircle, LayoutDashboard, Search, Loader2 } from 'lucide-react';
+import { Camera, X, RotateCcw, CheckCircle2, QrCode, Copy, AlertCircle, LayoutDashboard, Search, Loader2, Flashlight } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CheckInResult } from '@/types/attendee';
 import { apiService } from '@/services/api';
@@ -42,6 +42,8 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
   const [manualSearching, setManualSearching] = useState(false);
   const [manualCheckingIn, setManualCheckingIn] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [torchSupported, setTorchSupported] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
   const [copyFlash, setCopyFlash] = useState(false);
   const [announcement, setAnnouncement] = useState('');
   const processingRef = useRef(false);
@@ -112,6 +114,12 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
         },
         () => {}
       );
+      try {
+        const caps = html5QrCode.getRunningTrackCameraCapabilities();
+        setTorchSupported(caps.torchFeature().isSupported());
+      } catch {
+        setTorchSupported(false);
+      }
     } catch (error) {
       console.error('Camera error:', error);
       setCameraError(
@@ -127,6 +135,22 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
       html5QrCodeRef.current = null;
     }
     setScanning(false);
+    setTorchSupported(false);
+    setTorchOn(false);
+  };
+
+  const toggleTorch = async () => {
+    const scanner = html5QrCodeRef.current;
+    if (!scanner || !torchSupported) return;
+    try {
+      const torch = scanner.getRunningTrackCameraCapabilities().torchFeature();
+      const next = !torchOn;
+      await torch.apply(next);
+      setTorchOn(torch.value() ?? next);
+    } catch (err) {
+      console.error('Torch toggle failed:', err);
+      toast.error('Could not switch torch');
+    }
   };
 
   useEffect(() => {
@@ -206,20 +230,43 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
   };
 
   const readerEl = (
-    <div
-      id="reader"
-      ref={scannerRef}
-      className={`w-full border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted scanner-frame ${!scanning ? 'animate-pulse' : ''}`}
-      style={{ minHeight: standalone ? 'min(70vh, 400px)' : '300px' }}
-    >
-      {!scanning && (
-        <div className="text-center text-muted-foreground">
-          <Camera className="h-12 w-12 mx-auto mb-2" />
-          <p>
-            {standalone
-              ? 'Tap "Start Scanner" to activate camera'
-              : 'Click "Start Scanning" to activate camera'}
+    <div className="space-y-2">
+      <div
+        id="reader"
+        ref={scannerRef}
+        className={`w-full border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted scanner-frame ${!scanning ? 'animate-pulse' : ''}`}
+        style={{ minHeight: standalone ? 'min(70vh, 400px)' : '300px' }}
+      >
+        {!scanning && (
+          <div className="text-center text-muted-foreground">
+            <Camera className="h-12 w-12 mx-auto mb-2" />
+            <p>
+              {standalone
+                ? 'Tap "Start Scanner" to activate camera'
+                : 'Click "Start Scanning" to activate camera'}
+            </p>
+          </div>
+        )}
+      </div>
+      {scanning && (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <p className="text-center text-sm text-muted-foreground" aria-live="polite">
+            Hold QR code <strong>6–10 inches</strong> from camera.
           </p>
+          {torchSupported && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={toggleTorch}
+              className="gap-1.5"
+              aria-pressed={torchOn}
+              aria-label={torchOn ? 'Turn off torch' : 'Turn on torch'}
+            >
+              <Flashlight className={`h-4 w-4 ${torchOn ? 'text-amber-500' : ''}`} />
+              {torchOn ? 'Torch on' : 'Torch'}
+            </Button>
+          )}
         </div>
       )}
     </div>
