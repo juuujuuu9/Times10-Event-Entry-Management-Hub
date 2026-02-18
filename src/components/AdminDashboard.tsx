@@ -323,8 +323,12 @@ export function AdminDashboard({
         <CardContent>
           {sortedAttendees.length === 0 ? (
             <EmptyState
-              onAddAttendee={() => (window.location.href = '/')}
+              onAddAttendee={() => {
+                window.location.href = eventId ? '/' : '/admin/events/new';
+              }}
               onImportCSV={eventId ? () => { window.location.href = `/admin/events/import?event=${eventId}`; } : undefined}
+              addButtonLabel={eventId ? 'Add Attendee' : 'Create Event'}
+              addButtonRed={!eventId}
             />
           ) : (
           <div className="space-y-2">
