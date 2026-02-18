@@ -1,89 +1,12 @@
-@import "tailwindcss";
-
-@custom-variant dark (&:where(.dark, .dark *));
-
-@theme {
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(240 10% 3.9%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(240 10% 3.9%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(240 10% 3.9%);
-  --color-primary: hsl(240 5.9% 10%);
-  --color-primary-foreground: hsl(0 0% 98%);
-  --color-secondary: hsl(240 4.8% 95.9%);
-  --color-secondary-foreground: hsl(240 5.9% 10%);
-  --color-muted: hsl(240 4.8% 95.9%);
-  --color-muted-foreground: hsl(240 3.8% 46.1%);
-  --color-accent: hsl(240 4.8% 95.9%);
-  --color-accent-foreground: hsl(240 5.9% 10%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  --color-border: hsl(240 5.9% 90%);
-  --color-input: hsl(240 5.9% 90%);
-  --color-ring: hsl(240 5.9% 10%);
-  --radius: 0.625rem;
-}
-
-:root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
-  --radius: 0.625rem;
-}
-
-* {
-  border-color: hsl(var(--border));
-}
-
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
-
-.dark {
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  --card: 222 47% 11%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222 47% 11%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222 47% 11%;
-  --secondary: 217 33% 17%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --accent: 217 33% 17%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 63% 31%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217 33% 17%;
-  --input: 217 33% 17%;
-  --ring: 212 100% 50%;
-}
+/* QR Check-In — Animation & Effects Styles
+ * Add to your global.css or component-specific CSS
+ */
 
 /* ==========================================================================
-   QR Check-In — Animation & Effects Styles
+   1. STATUS FLIP ANIMATION
+   When check-in status changes, card flips or pulses
    ========================================================================== */
 
-/* 1. STATUS FLIP ANIMATION */
 @keyframes statusFlip {
   0% {
     transform: scale(1);
@@ -114,7 +37,11 @@ body {
   animation: successPulse 600ms ease-out;
 }
 
-/* 2. QR CODE BREATHING EFFECT */
+/* ==========================================================================
+   2. QR CODE BREATHING EFFECT
+   Subtle pulse to indicate scannable
+   ========================================================================== */
+
 @keyframes qrBreath {
   0%, 100% {
     opacity: 1;
@@ -130,6 +57,7 @@ body {
   animation: qrBreath 3s ease-in-out infinite;
 }
 
+/* QR scanning guide overlay */
 .qr-scan-overlay {
   background: linear-gradient(
     180deg,
@@ -140,7 +68,11 @@ body {
   );
 }
 
-/* 3. LIVE INDICATOR PULSE */
+/* ==========================================================================
+   3. LIVE INDICATOR PULSE
+   For "someone is scanning" indicator
+   ========================================================================== */
+
 @keyframes livePulse {
   0%, 100% {
     opacity: 1;
@@ -156,7 +88,11 @@ body {
   animation: livePulse 1.5s ease-in-out infinite;
 }
 
-/* 4. COUNT-UP ANIMATION */
+/* ==========================================================================
+   4. COUNT-UP ANIMATION
+   For stat numbers
+   ========================================================================== */
+
 @keyframes countUp {
   from {
     opacity: 0;
@@ -172,7 +108,11 @@ body {
   animation: countUp 600ms ease-out;
 }
 
-/* 5. ROW SLIDE IN */
+/* ==========================================================================
+   5. ROW SLIDE IN
+   For activity feed items
+   ========================================================================== */
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -188,19 +128,26 @@ body {
   animation: slideIn 200ms ease-out;
 }
 
-/* 6. TOAST ANIMATIONS */
+/* ==========================================================================
+   6. TOAST ANIMATIONS
+   Sonner override styles for better feel
+   ========================================================================== */
+
+/* Success toast */
 [data-sonner-toast][data-type="success"] {
   --normal-bg: #ecfdf5;
   --normal-text: #065f46;
   --normal-border: #a7f3d0;
 }
 
+/* Error toast */
 [data-sonner-toast][data-type="error"] {
   --normal-bg: #fef2f2;
   --normal-text: #991b1b;
   --normal-border: #fecaca;
 }
 
+/* Dark mode overrides */
 @media (prefers-color-scheme: dark) {
   [data-sonner-toast][data-type="success"] {
     --normal-bg: #064e3b;
@@ -215,7 +162,11 @@ body {
   }
 }
 
-/* 7. FOCUS VISIBLE STYLES */
+/* ==========================================================================
+   7. FOCUS VISIBLE STYLES
+   Accessibility
+   ========================================================================== */
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
@@ -223,12 +174,17 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+/* Remove default focus for mouse users */
 button:focus:not(:focus-visible),
 a:focus:not(:focus-visible) {
   outline: none;
 }
 
-/* 8. SKELETON LOADING */
+/* ==========================================================================
+   8. SKELETON LOADING
+   For async data states
+   ========================================================================== */
+
 @keyframes skeleton {
   0% {
     background-position: 200% 0;
@@ -260,11 +216,16 @@ a:focus:not(:focus-visible) {
   background-size: 200% 100%;
 }
 
-/* 9. SMOOTH SCROLL */
+/* ==========================================================================
+   9. SMOOTH SCROLL
+   For activity feed auto-scroll
+   ========================================================================== */
+
 .smooth-scroll {
   scroll-behavior: smooth;
 }
 
+/* Hide scrollbar but keep functionality */
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -274,7 +235,11 @@ a:focus:not(:focus-visible) {
   display: none;
 }
 
-/* 10. REDUCED MOTION */
+/* ==========================================================================
+   10. REDUCED MOTION
+   Respect user preferences
+   ========================================================================== */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -291,7 +256,11 @@ a:focus:not(:focus-visible) {
   }
 }
 
-/* 11. DARK MODE TRANSITIONS */
+/* ==========================================================================
+   11. DARK MODE TRANSITIONS
+   Smooth theme switching
+   ========================================================================== */
+
 html,
 html * {
   transition: background-color 200ms ease-out,
@@ -299,6 +268,7 @@ html * {
               color 100ms ease-out;
 }
 
+/* But not for these elements - they should be instant */
 button,
 input,
 textarea,
@@ -310,7 +280,10 @@ select,
               box-shadow 150ms ease-out;
 }
 
-/* 12. TABLE STICKY HEADER */
+/* ==========================================================================
+   12. TABLE STICKY HEADER
+   ========================================================================== */
+
 .sticky-header thead {
   position: sticky;
   top: 0;
@@ -327,7 +300,11 @@ select,
   background: rgba(15, 23, 42, 0.9);
 }
 
-/* 13. CARD HOVER LIFT */
+/* ==========================================================================
+   13. CARD HOVER LIFT
+   Subtle depth on hover
+   ========================================================================== */
+
 .card-hover {
   transition: transform 150ms ease-out, box-shadow 150ms ease-out;
 }
@@ -341,12 +318,19 @@ select,
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* 14. BUTTON PRESS EFFECT */
+/* ==========================================================================
+   14. BUTTON PRESS EFFECT
+   ========================================================================== */
+
 button:active:not(:disabled) {
   transform: scale(0.98);
 }
 
-/* 15. SCANNER CORNER BRACKETS */
+/* ==========================================================================
+   15. SCANNER CORNER BRACKETS
+   For the QR scanner UI
+   ========================================================================== */
+
 .scanner-frame {
   position: relative;
 }

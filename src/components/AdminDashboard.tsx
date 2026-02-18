@@ -8,7 +8,9 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { formatRelativeTime } from '@/lib/formatters';
 import {
   Dialog,
   DialogContent,
@@ -52,17 +54,6 @@ function getInitials(attendee: Attendee): string {
   const f = attendee.firstName?.charAt(0) ?? '';
   const l = attendee.lastName?.charAt(0) ?? '';
   return (f + l).toUpperCase() || '?';
-}
-
-function formatRelativeTime(checkedInAt: string): string {
-  const seconds = Math.floor(
-    (Date.now() - new Date(checkedInAt).getTime()) / 1000
-  );
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hr ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
-  return new Date(checkedInAt).toLocaleDateString();
 }
 
 interface AdminDashboardProps {
@@ -482,33 +473,11 @@ export function AdminDashboard({
         </CardHeader>
         <CardContent>
           {sortedAttendees.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-              <Users className="h-12 w-12 text-slate-300 mb-4" />
-              <h3 className="text-lg font-semibold text-slate-900 mb-1">
-                No attendees yet
-              </h3>
-              <p className="text-sm text-slate-500 mb-6 max-w-sm">
-                Import from CSV or add manually to get started.
-              </p>
-              <div className="flex flex-wrap gap-3 justify-center">
-                {eventId && (
-                    <Button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={importing}
-                    >
-                      {importing ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Upload className="h-4 w-4 mr-2" />
-                      )}
-                      {importing ? 'Importing…' : 'Import CSV'}
-                    </Button>
-                )}
-                <Button variant="outline" asChild>
-                  <a href="/">{eventId ? 'Add Attendee' : 'Go to RSVP'}</a>
-                </Button>
-              </div>
-            </div>
+            <EmptyState
+              onAddAttendee={() => (window.location.href = '/')}
+              onImportCSV={eventId ? () => fileInputRef.current?.click() : undefined}
+              importing={importing}
+            />
           ) : (
           <div className="space-y-2">
             {selectedIds.size > 0 && (
@@ -572,7 +541,7 @@ export function AdminDashboard({
                   <TableHead>Email</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Registration Date</TableHead>
+                  <TableHead>Check-in</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -592,31 +561,25 @@ export function AdminDashboard({
                       />
                     </TableCell>
                     <TableCell className={`font-medium ${density === 'compact' ? 'py-1' : 'py-3'}`}>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium"
-                          aria-hidden
-                        >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium shrink-0">
                           {getInitials(attendee)}
-                        </span>
+                        </div>
                         {formatNameLastFirst(attendee)}
                       </div>
                     </TableCell>
                     <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>{attendee.email}</TableCell>
                     <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>{attendee.company || '-'}</TableCell>
                     <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>
-                      <Badge
-                        variant={attendee.checkedIn ? 'success' : 'muted'}
-                        className="transition-colors duration-200"
-                      >
-                        {attendee.checkedIn ? 'Checked In' : 'Pending'}
-                      </Badge>
+                      <StatusBadge status={attendee.checkedIn ? 'checked-in' : 'pending'} />
+                    </TableCell>
+                    <TableCell className={`text-sm text-slate-500 dark:text-slate-400 ${density === 'compact' ? 'py-1' : 'py-3'}`}>
+                      {attendee.checkedIn && attendee.checkedInAt
+                        ? formatRelativeTime(attendee.checkedInAt)
+                        : '—'}
                     </TableCell>
                     <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>
-                      {new Date(attendee.rsvpAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>
-                      <div className="flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                         <Button
                           size="sm"
                           variant="ghost"
