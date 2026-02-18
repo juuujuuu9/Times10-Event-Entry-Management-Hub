@@ -44,6 +44,7 @@ import type { Attendee } from '@/types/attendee';
 import { apiService } from '@/services/api';
 import { QR_GENERATION } from '@/config/qr';
 import QRCode from 'qrcode';
+import { QRDisplay } from './QRDisplay';
 
 function formatNameLastFirst(attendee: Attendee): string {
   return `${attendee.lastName}, ${attendee.firstName}`;
@@ -199,6 +200,7 @@ export function AdminDashboard({
       width: QR_GENERATION.width,
       margin: QR_GENERATION.margin,
       errorCorrectionLevel: QR_GENERATION.errorCorrectionLevel,
+      color: QR_GENERATION.color,
     });
     setQrDataUrl(url);
   };
@@ -468,7 +470,7 @@ export function AdminDashboard({
       </Card>
 
       <Dialog open={showQR} onOpenChange={setShowQR}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>QR Code</DialogTitle>
             <DialogDescription>
@@ -476,15 +478,14 @@ export function AdminDashboard({
             </DialogDescription>
           </DialogHeader>
           {selectedAttendee && (
-            <div className="text-center space-y-4">
-              <img
-                src={qrDataUrl}
-                alt="QR Code"
-                className="mx-auto"
+            <div className="space-y-4">
+              <QRDisplay
+                qrDataUrl={qrDataUrl}
+                attendeeName={formatNameLastFirst(selectedAttendee)}
               />
-              <div className="text-sm text-slate-600">
+              <div className="text-center text-sm text-slate-600 border-t pt-4">
                 <p>{selectedAttendee.email}</p>
-                <p>ID: {selectedAttendee.id}</p>
+                <p className="text-xs text-slate-400 mt-1">ID: {selectedAttendee.id}</p>
               </div>
             </div>
           )}

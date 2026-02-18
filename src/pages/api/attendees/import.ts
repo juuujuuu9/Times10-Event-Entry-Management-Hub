@@ -143,6 +143,7 @@ export const POST: APIRoute = async ({ request }) => {
     const headers = parseCSVLine(headerLine).map(normalizeHeader);
     let imported = 0;
     let skipped = 0;
+    const importedAttendeeIds: string[] = [];
 
     for (let i = 1; i < lines.length; i++) {
       const values = parseCSVLine(lines[i]);
@@ -170,11 +171,12 @@ export const POST: APIRoute = async ({ request }) => {
         sourceData: Object.keys(sourceData).length ? sourceData : undefined,
       });
       await getOrCreateQRPayload(attendee.id, eventId);
+      importedAttendeeIds.push(attendee.id);
       imported += 1;
     }
 
     return new Response(
-      JSON.stringify({ imported, skipped }),
+      JSON.stringify({ imported, skipped, importedAttendeeIds }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {

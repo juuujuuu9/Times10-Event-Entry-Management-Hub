@@ -1,0 +1,84 @@
+import type { APIRoute } from 'astro';
+import { getAttendeesByEventId, getAllAttendees } from '../../../lib/db';
+import { getOrCreateQRPayload } from '../../../lib/qr-token';
+
+/**
+ * Bulk refresh QR tokens for an event.
+ * Use this to regenerate all QRs with new settings (e.g., after optimizing for phone-to-phone scanning).
+ * This invalidates old QR screenshots but ensures all codes use latest generation settings.
+ */
+export const POST: APIRoute = async ({ request }) => {
+  try {
+    const { eventId, confirm } = ((await request.json()) || {}) as {
+      eventId?: string;
+      confirm?: boolean;
+    };
+
+    if (!confirm) {
+      return new Response(
+        JSON.stringify({
+          error: 'Confirmation required',
+          message: 'This will invalidate all existing QR codes for the event. Attendees with screenshots or saved images will need new codes. Set confirm: true to proceed.',
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get attendees
+    const attendees = eventId
+      ? await getAttendeesByEventId(eventId)
+      : await getAllAttendees();
+
+    if (attendees.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No attendees found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Refresh QRs in batches
+    const results = { refreshed: 0, failed: 0, errors: [] as string[] };
+    const BATCH_SIZE = 10;
+
+    for (let i = 0; i < attendees.length; i += BATCH_SIZE) {
+      const batch = attendees.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(async (attendee) => {
+          try {
+            await getOrCreateQRPayload(attendee.id, eventId || attendee.eventId);
+            results.refreshed++;
+          } catch (err) {
+            results.failed++;
+            results.errors.push(
+              `Failed for ${attendee.id}: ${err instanceof Error ? err.message : 'Unknown error'}`
+            );
+          }
+        })
+      );
+
+      // Small delay between batches
+      if (i + BATCH_SIZE < attendees.length) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        refreshed: results.refreshed,
+        failed: results.failed,
+        total: attendees.length,
+        errors: results.errors.slice(0, 10),
+      }),
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (err) {
+    console.error('[refresh-qr-bulk]', err);
+    return new Response(
+      JSON.stringify({
+        error: err instanceof Error ? err.message : 'Bulk refresh failed',
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+};

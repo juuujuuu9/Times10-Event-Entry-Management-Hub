@@ -26,14 +26,17 @@ export async function sendQRCodeEmail(
     dietaryRestrictions?: string;
     rsvpAt: string;
   },
-  qrCodeBase64: string
+  qrCodeBase64: string,
+  overrides?: { fromName?: string; eventName?: string }
 ) {
   const apiKey = import.meta.env.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
   if (!apiKey) {
     return { success: false as const, error: 'Email service not configured' };
   }
   const fromEmail = import.meta.env.FROM_EMAIL ?? process.env.FROM_EMAIL ?? 'onboarding@resend.dev';
-  const fromName = import.meta.env.FROM_NAME ?? process.env.FROM_NAME ?? 'Event Check-In';
+  const fromName =
+    overrides?.fromName ?? import.meta.env.FROM_NAME ?? process.env.FROM_NAME ?? 'Event Check-In';
+  const eventName = overrides?.eventName ?? 'the event';
   const from = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
 
   let attachmentContent: string;
@@ -56,7 +59,7 @@ export async function sendQRCodeEmail(
   const { data, error } = await getResend().emails.send({
     from,
     to: attendee.email,
-    subject: 'Your Event Registration QR Code',
+    subject: `Your ${eventName} Registration QR Code`,
     attachments,
     html: `
       <!DOCTYPE html>
@@ -82,12 +85,12 @@ export async function sendQRCodeEmail(
         <div class="header"><h1>You're Registered!</h1></div>
         <div class="content">
           <p>Hi <strong>${attendee.firstName} ${attendee.lastName}</strong>,</p>
-          <p>Thank you for registering — we're excited to have you! Your unique QR code is below.</p>
+          <p>Thank you for registering for <strong>${eventName}</strong> — we're excited to have you! Your unique QR code is below.</p>
           <div class="qr-container">
             <img src="cid:${QR_CID}" alt="Your QR Code" class="qr-code" />
             <p class="check-in-note"><strong>Your check-in QR code</strong></p>
             <div class="instructions">
-              <p><strong>How to check in at the event:</strong></p>
+              <p><strong>How to check in at ${eventName}:</strong></p>
               <ol>
                 <li><strong>Save this email</strong> — Keep it in your inbox or take a screenshot so you can access it offline.</li>
                 <li><strong>When you arrive</strong> — Open this email on your phone and scroll to the QR code above.</li>
@@ -104,7 +107,7 @@ export async function sendQRCodeEmail(
             ${attendee.dietaryRestrictions ? `<p><strong>Dietary Restrictions:</strong> ${attendee.dietaryRestrictions}</p>` : ''}
             <p><strong>Registration Date:</strong> ${new Date(attendee.rsvpAt).toLocaleDateString()}</p>
           </div>
-          <p>We look forward to seeing you at the event!</p>
+          <p>We look forward to seeing you at ${eventName}!</p>
         </div>
         <div class="footer"><p>This is an automated message. Please do not reply to this email.</p></div>
       </body>

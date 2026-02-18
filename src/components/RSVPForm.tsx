@@ -16,6 +16,7 @@ import type { Attendee, RSVPFormData } from '@/types/attendee';
 import { apiService } from '@/services/api';
 import { QR_GENERATION } from '@/config/qr';
 import QRCode from 'qrcode';
+import { QRDisplay } from './QRDisplay';
 
 interface RSVPFormProps {
   onSuccess?: () => void;
@@ -71,6 +72,7 @@ export function RSVPForm({ onSuccess }: RSVPFormProps) {
         width: QR_GENERATION.width,
         margin: QR_GENERATION.margin,
         errorCorrectionLevel: QR_GENERATION.errorCorrectionLevel,
+        color: QR_GENERATION.color,
       });
       setGeneratedQR(qrCodeDataUrl);
 
@@ -282,26 +284,31 @@ export function RSVPForm({ onSuccess }: RSVPFormProps) {
 
             {generatedQR && (
               <div className="text-center">
-                <img src={generatedQR} alt="QR Code" className="mx-auto mb-4" />
-                <Button
-                  onClick={async () => {
-                    if (newAttendee) {
-                      try {
-                        await apiService.sendEmail(
-                          newAttendee.id,
-                          generatedQR
-                        );
-                        toast.success('Email sent successfully!');
-                      } catch {
-                        toast.error('Failed to send email');
+                <QRDisplay
+                  qrDataUrl={generatedQR}
+                  attendeeName={newAttendee ? `${newAttendee.firstName} ${newAttendee.lastName}` : undefined}
+                />
+                <div className="mt-6">
+                  <Button
+                    onClick={async () => {
+                      if (newAttendee) {
+                        try {
+                          await apiService.sendEmail(
+                            newAttendee.id,
+                            generatedQR
+                          );
+                          toast.success('Email sent successfully!');
+                        } catch {
+                          toast.error('Failed to send email');
+                        }
                       }
-                    }
-                  }}
-                  variant="outline"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Send QR Code to Email
-                </Button>
+                    }}
+                    variant="outline"
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send QR Code to Email
+                  </Button>
+                </div>
                 {emailStatus && !emailStatus.configured && (
                   <p className="text-sm text-amber-700 mt-2">
                     Email not configured. Add{' '}

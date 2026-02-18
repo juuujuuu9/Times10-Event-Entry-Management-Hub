@@ -47,6 +47,7 @@ import Layout from '../../../layouts/Layout.astro';
             placeholder="e.g. summer-party-2024"
           />
           <p class="mt-1 text-xs text-muted-foreground">Used in webhooks and URLs. Lowercase, no spaces.</p>
+          <p id="slug-illegal-chars" class="mt-1 text-xs text-[var(--amber-11)] hidden">Some characters cannot be used in slugs and were removed:</p>
         </div>
         <div>
           <label for="micrositeUrl" class="block text-sm font-medium text-muted-foreground mb-1">Microsite URL (optional)</label>
@@ -79,30 +80,56 @@ import Layout from '../../../layouts/Layout.astro';
     const nameInput = document.getElementById('name') as HTMLInputElement;
     const slugInput = document.getElementById('slug') as HTMLInputElement;
     const errorEl = document.getElementById('form-error');
+    const illegalCharsEl = document.getElementById('slug-illegal-chars');
 
-    nameInput?.addEventListener('input', () => {
-      if (!slugInput?.value && nameInput.value) {
-        slugInput.value = nameInput.value
-          .toLowerCase()
-          .replace(/\s+/g, '-')
-          .replace(/[^a-z0-9-]/g, '');
+    function nameToSlug(name: string): { slug: string; illegalChars: string[] } {
+      const slug = name
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')  // collapse multiple hyphens
+        .replace(/^-|-$/g, '');  // trim leading/trailing hyphens
+      const allowed = /[a-z0-9\s-]/;
+      const illegalChars = [...new Set(
+        name.split('').filter((c) => !allowed.test(c.toLowerCase()))
+      )];
+      return { slug, illegalChars };
+    }
+
+    function syncSlugFromName() {
+      if (!nameInput || !slugInput || !illegalCharsEl) return;
+      const name = nameInput.value;
+      const { slug, illegalChars } = nameToSlug(name);
+      slugInput.value = slug;
+      if (illegalChars.length > 0) {
+        illegalCharsEl.textContent = `Some characters cannot be used in slugs and were removed: ${illegalChars.join(' ')}`;
+        illegalCharsEl.classList.remove('hidden');
+      } else {
+        illegalCharsEl.classList.add('hidden');
       }
-    });
+    }
+
+    nameInput?.addEventListener('input', syncSlugFromName);
 
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!errorEl) return;
       errorEl.classList.add('hidden');
       const name = (nameInput?.value ?? '').trim();
-      let slug = (slugInput?.value ?? '').trim().toLowerCase().replace(/\s+/g, '-');
-      if (!slug && name) slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      let slug = (slugInput?.value ?? '').trim().toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      if (!slug && name) slug = nameToSlug(name).slug;
       if (!name) {
         errorEl.textContent = 'Name is required';
         errorEl.classList.remove('hidden');
         return;
       }
       if (!slug) {
-        errorEl.textContent = 'Slug is required';
+        errorEl.textContent = 'Slug is required. Use only letters, numbers, and hyphens.';
         errorEl.classList.remove('hidden');
         return;
       }

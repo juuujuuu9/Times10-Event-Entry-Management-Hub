@@ -75,13 +75,135 @@ if (eventId) {
           </div>
           <div id="form-error" class="hidden text-sm text-[var(--red-11)]"></div>
           <div id="form-success" class="hidden text-sm text-[var(--green-11)]"></div>
-          <div class="flex gap-3">
+
+          <!-- Post-Import Bulk Email Section -->
+          <div id="bulk-email-section" class="hidden mt-6 pt-6 border-t border-border">
+            <div class="rounded-lg border border-[var(--red-9)] bg-[var(--red-2)] p-4 mb-4">
+              <div class="flex items-start gap-3">
+                <svg class="h-5 w-5 text-[var(--red-11)] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-[var(--red-11)]">⚠️ Email Blast Warning</h3>
+                  <p class="text-sm text-[var(--red-11)] mt-1">
+                    You are about to send <strong>actual emails</strong> to <strong>real people</strong>. 
+                    This will dispatch a QR code email to every attendee you just imported. 
+                    This action cannot be undone.
+                  </p>
+                  <ul class="text-sm text-[var(--red-11)] mt-2 list-disc list-inside">
+                    <li>Recipients will receive an email with their QR code attached</li>
+                    <li>Make sure your Resend API key and domain are configured</li>
+                    <li>Test with a small CSV first if you're unsure</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <dialog id="bulk-email-dialog" class="rounded-lg border border-border bg-card shadow-lg p-6 w-full max-w-md backdrop:bg-black/40">
+              <h4 class="font-semibold text-foreground mb-4">Email blast settings</h4>
+              <p class="text-sm text-muted-foreground mb-4">
+                These values will appear in the QR code emails sent to <span id="dialog-count">0</span> attendees.
+              </p>
+              <div class="space-y-4">
+                <div>
+                  <label for="from-name-input" class="block text-sm font-medium text-muted-foreground mb-1">From name</label>
+                  <input
+                    type="text"
+                    id="from-name-input"
+                    placeholder="e.g. Acme Events"
+                    class="w-full rounded border border-input bg-background px-3 py-2 text-foreground"
+                  />
+                  <p class="mt-1 text-xs text-muted-foreground">Shown as the sender (e.g. "Acme Events &lt;noreply@acme.com&gt;")</p>
+                </div>
+                <div>
+                  <label for="event-name-input" class="block text-sm font-medium text-muted-foreground mb-1">Event name</label>
+                  <input
+                    type="text"
+                    id="event-name-input"
+                    placeholder="e.g. Summer Summit 2025"
+                    class="w-full rounded border border-input bg-background px-3 py-2 text-foreground"
+                  />
+                  <p class="mt-1 text-xs text-muted-foreground">Used in the email subject and body</p>
+                </div>
+              </div>
+              <div id="bulk-dialog-error" class="hidden mt-3 text-sm text-[var(--red-11)]"></div>
+              <div class="flex gap-3 mt-6 justify-end">
+                <button type="button" id="bulk-dialog-cancel" class="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted">
+                  Cancel
+                </button>
+                <button type="button" id="bulk-dialog-send" class="rounded bg-[var(--red-9)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--red-10)]">
+                  Send emails
+                </button>
+              </div>
+            </dialog>
+
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h4 class="font-medium text-foreground">Send QR Codes via Email</h4>
+                <p class="text-sm text-muted-foreground">
+                  <span id="bulk-count">0</span> attendees will receive emails
+                </p>
+              </div>
+              <button
+                type="button"
+                id="bulk-send-btn"
+                class="inline-flex items-center justify-center gap-2 rounded bg-[var(--red-9)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--red-10)] disabled:opacity-50 min-w-[140px]"
+              >
+                <span id="bulk-send-label">Send All QR Codes</span>
+                <svg id="bulk-send-spinner" class="hidden h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div id="bulk-progress" class="hidden">
+              <div class="w-full bg-muted rounded-full h-2 mb-2">
+                <div id="bulk-progress-bar" class="bg-[var(--red-9)] h-2 rounded-full transition-all" style="width: 0%"></div>
+              </div>
+              <p id="bulk-progress-text" class="text-sm text-muted-foreground text-center">Preparing...</p>
+            </div>
+
+            <div id="bulk-result" class="hidden mt-4 rounded-lg border border-border bg-muted p-4">
+              <h5 class="font-medium text-foreground mb-2">Results</h5>
+              <div class="grid grid-cols-3 gap-4 text-center">
+                <div class="rounded bg-background p-3">
+                  <div id="result-sent" class="text-2xl font-bold text-[var(--green-11)]">0</div>
+                  <div class="text-xs text-muted-foreground">Sent</div>
+                </div>
+                <div class="rounded bg-background p-3">
+                  <div id="result-failed" class="text-2xl font-bold text-[var(--red-11)]">0</div>
+                  <div class="text-xs text-muted-foreground">Failed</div>
+                </div>
+                <div class="rounded bg-background p-3">
+                  <div id="result-total" class="text-2xl font-bold text-foreground">0</div>
+                  <div class="text-xs text-muted-foreground">Total</div>
+                </div>
+              </div>
+              <div id="result-errors" class="hidden mt-3 text-sm text-[var(--red-11)] max-h-32 overflow-y-auto"></div>
+            </div>
+
+            <div class="mt-4 flex gap-3">
+              <a
+                href={`/admin?event=${event?.id}`}
+                id="skip-email-link"
+                class="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+              >
+                Skip & Go to Attendees
+              </a>
+            </div>
+          </div>
+          <div id="form-actions" class="flex gap-3">
             <button
               type="submit"
               id="submit-btn"
-              class="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
+              class="inline-flex items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[var(--color-primary-hover)] disabled:opacity-50 min-w-[100px]"
             >
-              Import
+              <span id="submit-label">Import</span>
+              <svg id="submit-spinner" class="hidden h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
             </button>
             <a
               href="/admin/events"
@@ -95,19 +217,49 @@ if (eventId) {
     </main>
   </div>
 
-  <script define:vars={{ eventId: event?.id }}>
+  <script define:vars={{ eventId: event?.id, eventName: event?.name ?? '' }}>
     const form = document.getElementById('import-form');
     if (!form || !eventId) return;
     const fileInput = form.querySelector('input[name="file"]');
     const errorEl = document.getElementById('form-error');
     const successEl = document.getElementById('form-success');
     const submitBtn = document.getElementById('submit-btn');
+    const submitLabel = document.getElementById('submit-label');
+    const submitSpinner = document.getElementById('submit-spinner');
+
+    // Bulk email elements
+    const bulkEmailSection = document.getElementById('bulk-email-section');
+    const bulkCount = document.getElementById('bulk-count');
+    const bulkSendBtn = document.getElementById('bulk-send-btn');
+    const bulkSendLabel = document.getElementById('bulk-send-label');
+    const bulkSendSpinner = document.getElementById('bulk-send-spinner');
+    const bulkProgress = document.getElementById('bulk-progress');
+    const bulkProgressBar = document.getElementById('bulk-progress-bar');
+    const bulkProgressText = document.getElementById('bulk-progress-text');
+    const bulkResult = document.getElementById('bulk-result');
+    const resultSent = document.getElementById('result-sent');
+    const resultFailed = document.getElementById('result-failed');
+    const resultTotal = document.getElementById('result-total');
+    const resultErrors = document.getElementById('result-errors');
+    const skipEmailLink = document.getElementById('skip-email-link');
+    const bulkDialog = document.getElementById('bulk-email-dialog');
+    const fromNameInput = document.getElementById('from-name-input');
+    const eventNameInput = document.getElementById('event-name-input');
+    const dialogCount = document.getElementById('dialog-count');
+    const dialogError = document.getElementById('bulk-dialog-error');
+    const dialogCancel = document.getElementById('bulk-dialog-cancel');
+    const dialogSend = document.getElementById('bulk-dialog-send');
+
+    let importedAttendeeIds = [];
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!errorEl || !successEl || !submitBtn || !fileInput?.files?.length) return;
       errorEl.classList.add('hidden');
       successEl.classList.add('hidden');
       submitBtn.disabled = true;
+      if (submitLabel) submitLabel.textContent = 'Importing…';
+      if (submitSpinner) submitSpinner.classList.remove('hidden');
       const formData = new FormData();
       formData.append('eventId', eventId);
       formData.append('file', fileInput.files[0]);
@@ -122,15 +274,147 @@ if (eventId) {
           errorEl.classList.remove('hidden');
           return;
         }
-        successEl.textContent = `Imported ${data.imported ?? 0} attendee(s)${(data.skipped ?? 0) > 0 ? `, ${data.skipped} skipped (duplicate email)` : ''}`;
+
+        // Show success and bulk email option
+        importedAttendeeIds = data.importedAttendeeIds || [];
+        successEl.textContent = `Imported ${data.imported} attendee(s). Skipped ${data.skipped} duplicate(s).`;
         successEl.classList.remove('hidden');
-        fileInput.value = '';
+
+        // Hide form elements and show bulk email section
+        form.querySelector('div:first-of-type').classList.add('hidden');
+        const formActions = document.getElementById('form-actions');
+        if (formActions) formActions.classList.add('hidden');
+
+        if (importedAttendeeIds.length > 0 && bulkEmailSection) {
+          bulkEmailSection.classList.remove('hidden');
+          if (bulkCount) bulkCount.textContent = importedAttendeeIds.length;
+          if (skipEmailLink) skipEmailLink.href = `/admin?event=${eventId}`;
+        } else {
+          // No attendees to email, redirect after a delay
+          setTimeout(() => {
+            window.location.href = `/admin?event=${eventId}`;
+          }, 2000);
+        }
       } catch (err) {
         errorEl.textContent = 'Import failed. Try again.';
         errorEl.classList.remove('hidden');
       } finally {
         submitBtn.disabled = false;
+        if (submitLabel) submitLabel.textContent = 'Import';
+        if (submitSpinner) submitSpinner.classList.add('hidden');
       }
     });
+
+    function openBulkEmailDialog() {
+      if (!bulkDialog || importedAttendeeIds.length === 0) return;
+      if (eventNameInput) eventNameInput.value = eventName || '';
+      if (fromNameInput) fromNameInput.value = '';
+      if (dialogCount) dialogCount.textContent = importedAttendeeIds.length;
+      if (dialogError) {
+        dialogError.textContent = '';
+        dialogError.classList.add('hidden');
+      }
+      bulkDialog.showModal();
+    }
+
+    if (dialogCancel) {
+      dialogCancel.addEventListener('click', () => bulkDialog?.close());
+    }
+
+    async function executeBulkSend(fromName, eventNameValue) {
+      if (importedAttendeeIds.length === 0) return;
+
+      const confirmMsg = `⚠️ WARNING: You are about to send ${importedAttendeeIds.length} emails to real people.\n\n` +
+        `This will dispatch QR codes to ALL imported attendees.\n\n` +
+        `Are you absolutely sure you want to continue?`;
+      if (!confirm(confirmMsg)) return;
+
+      bulkDialog?.close();
+      bulkSendBtn.disabled = true;
+      if (bulkSendLabel) bulkSendLabel.textContent = 'Sending...';
+      if (bulkSendSpinner) bulkSendSpinner.classList.remove('hidden');
+      if (bulkProgress) bulkProgress.classList.remove('hidden');
+      if (bulkResult) bulkResult.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/attendees/send-bulk-qr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            attendeeIds: importedAttendeeIds,
+            eventId: eventId,
+            fromName: fromName?.trim() || undefined,
+            eventName: eventNameValue?.trim() || undefined,
+          }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (bulkProgress) bulkProgress.classList.add('hidden');
+        if (bulkResult) bulkResult.classList.remove('hidden');
+
+        if (res.ok && data.success) {
+          if (resultSent) resultSent.textContent = data.sent;
+          if (resultFailed) resultFailed.textContent = data.failed;
+          if (resultTotal) resultTotal.textContent = data.total;
+
+          if (data.errors && data.errors.length > 0 && resultErrors) {
+            resultErrors.classList.remove('hidden');
+            resultErrors.innerHTML = '<strong>Errors:</strong><br>' +
+              data.errors.map(e => `• ${e.error}`).join('<br>');
+          } else {
+            if (resultErrors) resultErrors.classList.add('hidden');
+          }
+
+          if (bulkSendLabel) bulkSendLabel.textContent = 'Sent!';
+        } else {
+          if (bulkSendLabel) bulkSendLabel.textContent = 'Failed';
+          if (resultErrors) {
+            resultErrors.classList.remove('hidden');
+            resultErrors.textContent = data.error || 'Failed to send emails';
+          }
+        }
+      } catch (err) {
+        if (bulkProgress) bulkProgress.classList.add('hidden');
+        if (bulkResult) bulkResult.classList.remove('hidden');
+        if (bulkSendLabel) bulkSendLabel.textContent = 'Failed';
+        if (resultErrors) {
+          resultErrors.classList.remove('hidden');
+          resultErrors.textContent = 'Network error. Please try again.';
+        }
+      } finally {
+        bulkSendBtn.disabled = false;
+        if (bulkSendSpinner) bulkSendSpinner.classList.add('hidden');
+      }
+    }
+
+    if (bulkSendBtn) {
+      bulkSendBtn.addEventListener('click', () => {
+        if (importedAttendeeIds.length === 0) return;
+        openBulkEmailDialog();
+      });
+    }
+
+    if (dialogSend && fromNameInput && eventNameInput) {
+      dialogSend.addEventListener('click', () => {
+        const from = fromNameInput.value.trim();
+        const evName = eventNameInput.value.trim();
+        if (!from) {
+          if (dialogError) {
+            dialogError.textContent = 'Please enter a From name.';
+            dialogError.classList.remove('hidden');
+          }
+          return;
+        }
+        if (!evName) {
+          if (dialogError) {
+            dialogError.textContent = 'Please enter an Event name.';
+            dialogError.classList.remove('hidden');
+          }
+          return;
+        }
+        executeBulkSend(from, evName);
+      });
+    }
   </script>
 </Layout>
