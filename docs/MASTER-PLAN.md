@@ -2,7 +2,7 @@
 
 **Purpose:** Single source of truth for development progress. Use as the dev checklist; update when completing work; reference from other docs. Feeds into later documentation.
 
-**Last updated:** 2026-02-18 (Step 5: distance hint + torch)
+**Last updated:** 2026-02-18 (Step 9: offline capability)
 
 ---
 
@@ -33,7 +33,7 @@
 | Hardware scanner (keyboard wedge) | Missing | No hidden input for laser scanners. |
 | Stolen screenshot / scan count | Missing | No "duplicate use" visibility in admin/scanner. |
 | Brightness / high-contrast QR | Partial | Email copy exists; QR config not explicit. |
-| Offline capability | Missing | No cache/sync for scanner. |
+| Offline capability | **Done** | IndexedDB cache, offline queue, sync on reconnect; 409 = success. `src/lib/offline.ts`, `api/attendees/offline-cache`. |
 | Multi-event / central hub | **Done** | Events table, event-scoped attendees; microsite sync = CSV import (primary); webhook optional. |
 | Add to Wallet / Group / Capacity / Analytics | Not implemented | Optional; prioritize later. |
 | Rate limiting on RSVP/webhook | **Done** | `lib/rate-limit.ts`; 20/min attendees, 60/min webhook; checkin unchanged (5/min). |
@@ -89,7 +89,7 @@ Follow this order; check off and date as you complete each item.
 
 ### 9. Offline capability
 
-- [ ] Cache guest list (e.g. IndexedDB); offline check-in queue; sync when online; handle 409 as success.
+- [x] **Done.** IndexedDB cache via GET /api/attendees/offline-cache (staff-only, includes qr_token); offline check-in queue; sync when online; 409 treated as success. Manual search uses cache when offline. `src/lib/offline.ts`, CheckInScanner.
 
 ### 10. Optional (later)
 

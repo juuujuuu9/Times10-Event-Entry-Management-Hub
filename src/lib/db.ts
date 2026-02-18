@@ -107,6 +107,53 @@ export async function getAttendeesByEventId(eventId: string) {
   return getAllAttendees(eventId);
 }
 
+/** Minimal attendee data including qr_token for offline cache. Staff-only. */
+export type OfflineCacheAttendee = {
+  id: string;
+  eventId: string;
+  qrToken: string | null;
+  qrExpiresAt: string | null;
+  checkedIn: boolean;
+  firstName: string;
+  lastName: string;
+  email: string;
+  eventName?: string;
+};
+
+export async function getAttendeesForOfflineCache(eventId?: string): Promise<OfflineCacheAttendee[]> {
+  const db = getDb();
+  const rowToOffline = (row: Record<string, unknown>): OfflineCacheAttendee => ({
+    id: row.id as string,
+    eventId: (row.event_id ?? '') as string,
+    qrToken: (row.qr_token ?? null) as string | null,
+    qrExpiresAt: (row.qr_expires_at ?? null) as string | null,
+    checkedIn: Boolean(row.checked_in),
+    firstName: (row.first_name ?? '') as string,
+    lastName: (row.last_name ?? '') as string,
+    email: (row.email ?? '') as string,
+    eventName: row.event_name as string | undefined,
+  });
+  if (eventId) {
+    const rows = await db`
+      SELECT a.id, a.event_id, a.qr_token, a.qr_expires_at, a.checked_in,
+             a.first_name, a.last_name, a.email, e.name as event_name
+      FROM attendees a
+      LEFT JOIN events e ON e.id = a.event_id
+      WHERE a.event_id = ${eventId}
+      ORDER BY a.created_at DESC NULLS LAST, a.rsvp_at DESC
+    `;
+    return rows.map((row) => rowToOffline(row as Record<string, unknown>));
+  }
+  const rows = await db`
+    SELECT a.id, a.event_id, a.qr_token, a.qr_expires_at, a.checked_in,
+           a.first_name, a.last_name, a.email, e.name as event_name
+    FROM attendees a
+    LEFT JOIN events e ON e.id = a.event_id
+    ORDER BY a.created_at DESC NULLS LAST, a.rsvp_at DESC
+  `;
+  return rows.map((row) => rowToOffline(row as Record<string, unknown>));
+}
+
 /** Search attendees by name or email. Optionally scope by eventId. Joins event name for display. */
 export async function searchAttendees(eventId?: string, q?: string) {
   if (!q?.trim()) return getAllAttendees(eventId);

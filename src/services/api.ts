@@ -1,4 +1,5 @@
 import type { Attendee, RSVPFormData, CheckInResult } from '@/types/attendee';
+import type { OfflineCacheData } from '@/lib/offline';
 
 class ApiService {
   private async fetchWithError(url: string, options?: RequestInit) {
@@ -161,6 +162,14 @@ class ApiService {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     return { imported: data.imported ?? 0, skipped: data.skipped ?? 0 };
+  }
+
+  async getOfflineCache(eventId?: string): Promise<OfflineCacheData> {
+    const url = eventId
+      ? `/api/attendees/offline-cache?eventId=${encodeURIComponent(eventId)}`
+      : '/api/attendees/offline-cache';
+    const res = await this.fetchWithError(url);
+    return (res as { ok: true; data: OfflineCacheData }).data;
   }
 
   async getEmailStatus(): Promise<{ configured: boolean; link: string }> {

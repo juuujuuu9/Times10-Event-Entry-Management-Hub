@@ -30,9 +30,8 @@ function isStaffPage(pathname: string): boolean {
 
 function isStaffOnlyApi(pathname: string, method: string): boolean {
   if (pathname.startsWith('/api/auth/')) return false;
-  if (pathname === '/api/attendees') return true; // GET, POST, DELETE all require staff (no public RSVP)
+  if (pathname.startsWith('/api/attendees')) return true; // attendees + offline-cache, etc.
   if (pathname === '/api/webhooks/entry' && method === 'POST') return false; // auth via Bearer in handler
-  if (pathname === '/api/attendees' && (method === 'GET' || method === 'DELETE')) return true;
   if (pathname === '/api/checkin' && method === 'POST') return true;
   if (pathname === '/api/send-email' && (method === 'GET' || method === 'POST')) return true;
   if (pathname === '/api/attendees/refresh-qr' && method === 'POST') return true;

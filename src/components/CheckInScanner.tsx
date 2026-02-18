@@ -18,6 +18,37 @@ import {
   provideFeedback,
   type FeedbackType,
 } from '@/lib/feedback';
+import {
+  checkInOffline,
+  checkInAttendeeOffline,
+  setCachedData,
+  getCachedData,
+  syncQueue,
+  isOnline,
+} from '@/lib/offline';
+
+function isNetworkError(err: unknown): boolean {
+  if (err instanceof TypeError && err.message === 'Failed to fetch') return true;
+  if (err instanceof Error && (err.message.includes('network') || err.message.includes('fetch'))) return true;
+  return false;
+}
+
+/** Map OfflineCheckInResult to CheckInResult for UI consistency */
+function toCheckInResult(
+  r:
+    | { success: true; attendee: { id: string; firstName: string; lastName: string; email: string; company?: string }; event?: { id: string; name: string }; message: string }
+    | { success: false; alreadyCheckedIn?: boolean; attendee?: { id: string; firstName: string; lastName: string; email: string; company?: string }; event?: { id: string; name: string }; message: string }
+): CheckInResult {
+  return {
+    success: r.success,
+    alreadyCheckedIn: r.alreadyCheckedIn,
+    message: r.message,
+    event: r.event,
+    attendee: r.attendee
+      ? { id: r.attendee.id, firstName: r.attendee.firstName, lastName: r.attendee.lastName, email: r.attendee.email, company: r.attendee.company, checkedIn: true, rsvpAt: '' }
+      : undefined,
+  };
+}
 
 interface CheckInScannerProps {
   onCheckIn?: () => void;
@@ -46,6 +77,7 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
   const [torchOn, setTorchOn] = useState(false);
   const [copyFlash, setCopyFlash] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  const [offlineMode, setOfflineMode] = useState(false);
   const processingRef = useRef(false);
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCodeRef = useRef<{ stop: () => Promise<void> } | null>(null);
@@ -53,6 +85,52 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
   useEffect(() => {
     preloadScannerSounds();
   }, []);
+
+  useEffect(() => {
+    setOfflineMode(!isOnline());
+    const onOffline = () => setOfflineMode(true);
+    const onOnline = () => setOfflineMode(false);
+    window.addEventListener('offline', onOffline);
+    window.addEventListener('online', onOnline);
+    return () => {
+      window.removeEventListener('offline', onOffline);
+      window.removeEventListener('online', onOnline);
+    };
+  }, []);
+
+  // Cache guest list when online; sync queue when coming back online
+  useEffect(() => {
+    const refreshCache = async () => {
+      if (!isOnline()) return;
+      try {
+        const data = await apiService.getOfflineCache(eventId);
+        await setCachedData(data);
+      } catch {
+        // Ignore—cache will be stale or empty
+      }
+    };
+    const doSync = async () => {
+      if (!isOnline()) return;
+      const { synced, failed } = await syncQueue((body) =>
+        fetch('/api/checkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+      );
+      if (synced > 0) {
+        toast.success(`Synced ${synced} check-in${synced > 1 ? 's' : ''}`);
+        onCheckIn?.();
+      }
+      if (failed > 0) toast.error(`${failed} check-in${failed > 1 ? 's' : ''} failed to sync`);
+    };
+    refreshCache();
+    const onOnline = () => {
+      doSync().then(refreshCache);
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [eventId, onCheckIn]);
 
   useEffect(() => {
     if (!announcement) return;
@@ -88,7 +166,17 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
             if (!standalone) stopScanning();
 
             try {
-              const result = await apiService.checkInAttendee(decodedText);
+              let result: CheckInResult;
+              try {
+                result = await apiService.checkInAttendee(decodedText);
+              } catch (err) {
+                if (isNetworkError(err) && !isOnline()) {
+                  const offlineResult = await checkInOffline(decodedText);
+                  result = toCheckInResult(offlineResult);
+                } else {
+                  throw err;
+                }
+              }
               setScanResult(result);
               const ftype = feedbackTypeFromResult(result);
               provideFeedback(ftype, result.message, setAnnouncement);
@@ -166,12 +254,75 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
     }
     setManualSearching(true);
     try {
+      if (!isOnline()) {
+        const cache = await getCachedData();
+        if (cache) {
+          const lower = q.trim().toLowerCase();
+          const filtered = cache.attendees.filter(
+            (a) =>
+              a.firstName.toLowerCase().includes(lower) ||
+              a.lastName.toLowerCase().includes(lower) ||
+              a.email.toLowerCase().includes(lower)
+          );
+          if (eventId) {
+            const filteredEvent = filtered.filter((a) => a.eventId === eventId);
+            setManualResults(
+              filteredEvent.map((a) => ({
+                id: a.id,
+                firstName: a.firstName,
+                lastName: a.lastName,
+                email: a.email,
+                checkedIn: a.checkedIn,
+                eventName: a.eventName,
+              }))
+            );
+          } else {
+            setManualResults(
+              filtered.map((a) => ({
+                id: a.id,
+                firstName: a.firstName,
+                lastName: a.lastName,
+                email: a.email,
+                checkedIn: a.checkedIn,
+                eventName: a.eventName,
+              }))
+            );
+          }
+          return;
+        }
+      }
       const attendees = await apiService.searchAttendees(eventId, q);
       setManualResults(attendees);
     } catch (err) {
-      console.error('Manual search error:', err);
-      toast.error('Search failed');
-      setManualResults([]);
+      if (isNetworkError(err) && !isOnline()) {
+        const cache = await getCachedData();
+        if (cache) {
+          const lower = q.trim().toLowerCase();
+          const filtered = cache.attendees.filter(
+            (a) =>
+              a.firstName.toLowerCase().includes(lower) ||
+              a.lastName.toLowerCase().includes(lower) ||
+              a.email.toLowerCase().includes(lower)
+          );
+          setManualResults(
+            filtered.map((a) => ({
+              id: a.id,
+              firstName: a.firstName,
+              lastName: a.lastName,
+              email: a.email,
+              checkedIn: a.checkedIn,
+              eventName: a.eventName,
+            }))
+          );
+        } else {
+          toast.error('Offline: guest list not cached. Connect first.');
+          setManualResults([]);
+        }
+      } else {
+        console.error('Manual search error:', err);
+        toast.error('Search failed');
+        setManualResults([]);
+      }
     } finally {
       setManualSearching(false);
     }
@@ -197,7 +348,17 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
   const handleManualCheckIn = async (attendee: SearchAttendee) => {
     setManualCheckingIn(attendee.id);
     try {
-      const result = await apiService.checkInAttendeeById(attendee.id);
+      let result: CheckInResult;
+      try {
+        result = await apiService.checkInAttendeeById(attendee.id);
+      } catch (err) {
+        if (isNetworkError(err) && !isOnline()) {
+          const offlineResult = await checkInAttendeeOffline(attendee.id);
+          result = toCheckInResult(offlineResult);
+        } else {
+          throw err;
+        }
+      }
       setScanResult(result);
       const ftype = feedbackTypeFromResult(result);
       provideFeedback(ftype, result.message, setAnnouncement);
@@ -253,6 +414,11 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
           <p className="text-center text-sm text-muted-foreground" aria-live="polite">
             Hold QR code <strong>6–10 inches</strong> from camera.
           </p>
+          {offlineMode && (
+            <span className="text-xs px-2 py-1 rounded-md bg-amber-500/20 text-amber-11 border border-amber-6">
+              Offline — will sync when connected
+            </span>
+          )}
           {torchSupported && (
             <Button
               type="button"
