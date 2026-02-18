@@ -68,12 +68,12 @@ export async function sendQRCodeEmail(
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #d63a2e; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #374151; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #374151; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
           .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
           .qr-container { text-align: center; margin: 20px 0; }
           .qr-code { border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px; background: white; }
-          .check-in-note { font-size: 1.1em; color: #d63a2e; margin: 12px 0 8px; }
+          .check-in-note { font-size: 1.1em; color: #4b5563; margin: 12px 0 8px; }
           .instructions { text-align: left; margin-top: 16px; padding: 16px; background: white; border-radius: 8px; }
           .instructions ol { margin: 8px 0 0 16px; padding: 0; }
           .instructions li { margin-bottom: 8px; }

@@ -3,6 +3,7 @@ import { getAttendeeById, getEventById } from '../../../lib/db';
 import { sendQRCodeEmail } from '../../../lib/email';
 import { generateQRCodeBase64 } from '../../../lib/qr-client';
 import { QR_GENERATION } from '../../../config/qr';
+import { getOrCreateQRPayload } from '../../../lib/qr-token';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -53,8 +54,15 @@ export const POST: APIRoute = async ({ request }) => {
           continue;
         }
 
-        const qrPayload = `${eventId}:${attendeeId}:${Date.now()}`;
-        const qrCodeBase64 = await generateQRCodeBase64(qrPayload, {
+        // Generate proper QR payload (creates and stores token in DB)
+        const qrResult = await getOrCreateQRPayload(attendeeId, eventId);
+        if (!qrResult) {
+          results.failed++;
+          results.errors.push({ attendeeId, error: 'Failed to generate QR payload' });
+          continue;
+        }
+
+        const qrCodeBase64 = await generateQRCodeBase64(qrResult.qrPayload, {
           width: QR_GENERATION.width,
           margin: QR_GENERATION.margin,
           errorCorrectionLevel: QR_GENERATION.errorCorrectionLevel,
