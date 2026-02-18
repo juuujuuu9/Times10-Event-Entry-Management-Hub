@@ -45,6 +45,15 @@ class ApiService {
     return (res as { ok: true; data: Attendee[] }).data ?? [];
   }
 
+  async searchAttendees(eventId?: string, q?: string): Promise<(Attendee & { eventName?: string })[]> {
+    const params = new URLSearchParams();
+    if (eventId) params.set('eventId', eventId);
+    if (q?.trim()) params.set('q', q.trim());
+    const url = `/api/attendees?${params.toString()}`;
+    const res = await this.fetchWithError(url);
+    return (res as { ok: true; data: (Attendee & { eventName?: string })[] }).data ?? [];
+  }
+
   async getEvents(): Promise<{ id: string; name: string; slug: string }[]> {
     const res = await this.fetchWithError('/api/events');
     return (res as { ok: true; data: { id: string; name: string; slug: string }[] }).data ?? [];
@@ -76,6 +85,28 @@ class ApiService {
       method: 'DELETE',
       body: JSON.stringify({ id }),
     });
+  }
+
+  async checkInAttendeeById(attendeeId: string): Promise<CheckInResult> {
+    const res = await fetch('/api/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ attendeeId }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return body as CheckInResult;
+    }
+    if (res.status === 409) {
+      return {
+        success: false,
+        alreadyCheckedIn: true,
+        attendee: body.attendee,
+        event: body.event,
+        message: body.message || body.error || 'Already checked in',
+      };
+    }
+    throw new Error(body.error || `HTTP ${res.status}`);
   }
 
   async checkInAttendee(qrData: string): Promise<CheckInResult> {

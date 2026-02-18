@@ -107,6 +107,34 @@ export async function getAttendeesByEventId(eventId: string) {
   return getAllAttendees(eventId);
 }
 
+/** Search attendees by name or email. Optionally scope by eventId. Joins event name for display. */
+export async function searchAttendees(eventId?: string, q?: string) {
+  if (!q?.trim()) return getAllAttendees(eventId);
+  const db = getDb();
+  const pattern = `%${String(q).trim().slice(0, 200)}%`;
+  const rowToAttendeeWithEvent = (row: Record<string, unknown>) => ({
+    ...rowToAttendee(row),
+    eventName: row.event_name as string | undefined,
+  });
+  if (eventId) {
+    const rows = await db`
+      SELECT a.*, e.name as event_name FROM attendees a
+      LEFT JOIN events e ON e.id = a.event_id
+      WHERE a.event_id = ${eventId}
+        AND (a.first_name ILIKE ${pattern} OR a.last_name ILIKE ${pattern} OR a.email ILIKE ${pattern})
+      ORDER BY a.created_at DESC NULLS LAST, a.rsvp_at DESC
+    `;
+    return rows.map((row) => rowToAttendeeWithEvent(row as Record<string, unknown>));
+  }
+  const rows = await db`
+    SELECT a.*, e.name as event_name FROM attendees a
+    LEFT JOIN events e ON e.id = a.event_id
+    WHERE a.first_name ILIKE ${pattern} OR a.last_name ILIKE ${pattern} OR a.email ILIKE ${pattern}
+    ORDER BY a.created_at DESC NULLS LAST, a.rsvp_at DESC
+  `;
+  return rows.map((row) => rowToAttendeeWithEvent(row as Record<string, unknown>));
+}
+
 export async function getAttendeeById(id: string) {
   const db = getDb();
   const rows = await db`SELECT * FROM attendees WHERE id = ${id}`;

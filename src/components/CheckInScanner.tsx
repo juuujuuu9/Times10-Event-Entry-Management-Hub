@@ -7,7 +7,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, X, RotateCcw, CheckCircle2, QrCode, Copy, AlertCircle, LayoutDashboard } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Camera, X, RotateCcw, CheckCircle2, QrCode, Copy, AlertCircle, LayoutDashboard, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CheckInResult } from '@/types/attendee';
 import { apiService } from '@/services/api';
@@ -21,7 +22,11 @@ import {
 interface CheckInScannerProps {
   onCheckIn?: () => void;
   standalone?: boolean;
+  /** Scope manual search to this event. When omitted, searches all events. */
+  eventId?: string;
 }
+
+type SearchAttendee = { id: string; firstName: string; lastName: string; email: string; checkedIn: boolean; eventName?: string };
 
 function feedbackTypeFromResult(result: CheckInResult): FeedbackType {
   if (result.success) return 'success';
@@ -29,9 +34,13 @@ function feedbackTypeFromResult(result: CheckInResult): FeedbackType {
   return 'error';
 }
 
-export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScannerProps) {
+export function CheckInScanner({ onCheckIn, standalone = false, eventId }: CheckInScannerProps) {
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<CheckInResult | null>(null);
+  const [manualQuery, setManualQuery] = useState('');
+  const [manualResults, setManualResults] = useState<SearchAttendee[]>([]);
+  const [manualSearching, setManualSearching] = useState(false);
+  const [manualCheckingIn, setManualCheckingIn] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [copyFlash, setCopyFlash] = useState(false);
   const [announcement, setAnnouncement] = useState('');
@@ -125,6 +134,71 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
       stopScanning();
     };
   }, []);
+
+  const searchManual = async (q: string) => {
+    if (!q.trim() || q.length < 2) {
+      setManualResults([]);
+      return;
+    }
+    setManualSearching(true);
+    try {
+      const attendees = await apiService.searchAttendees(eventId, q);
+      setManualResults(attendees);
+    } catch (err) {
+      console.error('Manual search error:', err);
+      toast.error('Search failed');
+      setManualResults([]);
+    } finally {
+      setManualSearching(false);
+    }
+  };
+
+  const manualSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (manualSearchDebounceRef.current) clearTimeout(manualSearchDebounceRef.current);
+    if (!manualQuery.trim()) {
+      setManualResults([]);
+      return;
+    }
+    if (manualQuery.length < 2) {
+      setManualResults([]);
+      return;
+    }
+    manualSearchDebounceRef.current = setTimeout(() => searchManual(manualQuery), 300);
+    return () => {
+      if (manualSearchDebounceRef.current) clearTimeout(manualSearchDebounceRef.current);
+    };
+  }, [manualQuery, eventId]);
+
+  const handleManualCheckIn = async (attendee: SearchAttendee) => {
+    setManualCheckingIn(attendee.id);
+    try {
+      const result = await apiService.checkInAttendeeById(attendee.id);
+      setScanResult(result);
+      const ftype = feedbackTypeFromResult(result);
+      provideFeedback(ftype, result.message, setAnnouncement);
+      if (result.success) {
+        toast.success(result.message);
+        onCheckIn?.();
+        setManualResults((prev) =>
+          prev.map((a) => (a.id === attendee.id ? { ...a, checkedIn: true } : a))
+        );
+      } else {
+        toast.error(result.message);
+        if (result.alreadyCheckedIn) {
+          setManualResults((prev) =>
+            prev.map((a) => (a.id === attendee.id ? { ...a, checkedIn: true } : a))
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Manual check-in error:', err);
+      provideFeedback('error', 'Check-in failed', setAnnouncement);
+      toast.error('Check-in failed');
+    } finally {
+      setManualCheckingIn(null);
+    }
+  };
 
   const handleScanNext = () => {
     setScanResult(null);
@@ -247,6 +321,66 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
     </div>
   );
 
+  const manualCheckInEl = (
+    <div className="space-y-3 pt-4 border-t border-border">
+      <p className="text-sm font-medium text-muted-foreground">Or check in by name</p>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Search by name or email..."
+          value={manualQuery}
+          onChange={(e) => setManualQuery(e.target.value)}
+          className="pl-9"
+          disabled={manualSearching}
+          aria-label="Search attendees by name or email"
+        />
+      </div>
+      {manualSearching && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Searching...
+        </div>
+      )}
+      {manualResults.length > 0 && (
+        <ul className="space-y-2 max-h-48 overflow-y-auto rounded-md border border-border bg-muted/50 p-2">
+          {manualResults.map((a) => (
+            <li
+              key={a.id}
+              className="flex items-center justify-between gap-2 rounded-md bg-background px-3 py-2 text-sm"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="font-medium truncate">
+                  {a.firstName} {a.lastName}
+                </p>
+                <p className="text-muted-foreground text-xs truncate">{a.email}</p>
+                {a.eventName && (
+                  <p className="text-muted-foreground text-xs truncate">{a.eventName}</p>
+                )}
+              </div>
+              <Button
+                size="sm"
+                disabled={a.checkedIn || manualCheckingIn === a.id}
+                onClick={() => handleManualCheckIn(a)}
+              >
+                {manualCheckingIn === a.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : a.checkedIn ? (
+                  'Checked in'
+                ) : (
+                  'Check in'
+                )}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {manualQuery.length >= 2 && !manualSearching && manualResults.length === 0 && (
+        <p className="text-sm text-muted-foreground">No attendees found</p>
+      )}
+    </div>
+  );
+
   const resultOverlay =
     standalone && scanResult ? (
       <div
@@ -293,6 +427,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
         <div className="w-full max-w-md space-y-4 px-4">
           {readerEl}
           {buttons}
+          {manualCheckInEl}
           {errorEl}
         </div>
         {resultOverlay}
@@ -314,6 +449,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
           <div className="space-y-4">
             {readerEl}
             {buttons}
+            {manualCheckInEl}
             {errorEl}
           </div>
         </CardContent>

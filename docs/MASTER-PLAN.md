@@ -2,7 +2,7 @@
 
 **Purpose:** Single source of truth for development progress. Use as the dev checklist; update when completing work; reference from other docs. Feeds into later documentation.
 
-**Last updated:** 2026-02-18 (Radix Colors implementation)
+**Last updated:** 2026-02-18 (Manual check-in by name)
 
 ---
 
@@ -25,7 +25,7 @@
 | Scanner + validation | Done | CheckInScanner, `api/checkin` with 409 for duplicate |
 | PII in QR | **Done** | QR is `id:qr_token` only; no email in payload. |
 | Google login (staff / admin) | **Done** | Option B: middleware, auth-astro, /admin, /scanner, /login; STAFF_EMAILS/ADMIN_EMAILS allowlist. |
-| Manual override (search by name) | Missing | Scanner has no "check in by name". |
+| Manual override (search by name) | **Done** | CheckInScanner "Check in by name" search; GET /api/attendees?q=; POST /api/checkin { attendeeId }. |
 | Traffic light UI (Green/Yellow/Red) | Done | Green/amber/red; 409 = yellow (already checked in). CheckInScanner + api/checkin. |
 | Audio / haptic feedback | Done | Preload + vibrate + success/error/already tones; aria-live. src/lib/feedback.ts, CheckInScanner. |
 | Target overlay / distance hint | Partial | qrbox exists; no "6–10 inches" staff hint. |
@@ -68,7 +68,7 @@ Follow this order; check off and date as you complete each item.
 
 ### 4. Manual check-in by name
 
-- [ ] Add "Check in by name" (or "Manual check-in") on scanner page: search by name/email, call check-in API with attendee id. Reuse admin search or add `GET /api/attendees?q=...`.
+- [x] **Done.** "Check in by name" on scanner page: search by name/email (GET /api/attendees?q=); POST /api/checkin with attendeeId for staff override. CheckInScanner, db searchAttendees, api searchAttendees + checkInAttendeeById.
 
 ### 5. Traffic light UI + audio/haptic + distance hint
 

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import {
   getAllAttendees,
+  searchAttendees,
   getAttendeeById,
   createAttendee,
   deleteAttendee,
@@ -12,7 +13,8 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     const url = new URL(request.url);
     const eventId = url.searchParams.get('eventId') ?? undefined;
-    const attendees = await getAllAttendees(eventId ?? undefined);
+    const q = url.searchParams.get('q')?.trim() ?? undefined;
+    const attendees = await searchAttendees(eventId, q);
     return new Response(JSON.stringify(attendees), {
       headers: { 'Content-Type': 'application/json' },
     });

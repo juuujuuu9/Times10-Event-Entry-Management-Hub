@@ -4,6 +4,7 @@ import {
   getEventById,
   findAttendeeByEventAndToken,
   checkInAttendeeWithTokenScoped,
+  checkInAttendee,
 } from '../../lib/db';
 import { decodeQR } from '../../lib/qr';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
@@ -32,14 +33,60 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    const body = (await request.json()) as { qrData?: string; scannerDeviceId?: string } | null;
+    const body = (await request.json()) as {
+      qrData?: string;
+      attendeeId?: string;
+      scannerDeviceId?: string;
+    } | null;
     const qrData = body?.qrData;
+    const attendeeId = body?.attendeeId;
     const scannerDeviceId = body?.scannerDeviceId ?? null;
+
+    // Manual check-in by attendee ID (staff override)
+    if (attendeeId && typeof attendeeId === 'string') {
+      const attendee = await getAttendeeById(attendeeId);
+      if (!attendee) {
+        logCheckInAttempt({ ip, outcome: 'not_found', attendeeId });
+        return new Response(
+          JSON.stringify({ error: 'Attendee not found' }),
+          { status: 404, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      if (attendee.checkedIn) {
+        const event = attendee.eventId
+          ? await getEventById(attendee.eventId as string)
+          : null;
+        logCheckInAttempt({ ip, outcome: 'replay_attempt', attendeeId, eventId: attendee.eventId });
+        return new Response(
+          JSON.stringify({
+            alreadyCheckedIn: true,
+            attendee,
+            event: event ? { id: event.id, name: event.name } : undefined,
+            message: `Already checked in: ${attendee.firstName} ${attendee.lastName}`,
+          }),
+          { status: 409, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      const updated = await checkInAttendee(attendeeId);
+      const event = updated.eventId
+        ? await getEventById(updated.eventId as string)
+        : null;
+      logCheckInAttempt({ ip, outcome: 'success', attendeeId: updated.id, eventId: updated.eventId });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          event: event ? { id: event.id, name: event.name } : undefined,
+          attendee: updated,
+          message: `${updated.firstName} ${updated.lastName} checked in successfully!`,
+        }),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!qrData || typeof qrData !== 'string') {
       logCheckInAttempt({ ip, outcome: 'invalid_format' });
       return new Response(
-        JSON.stringify({ error: 'QR data is required' }),
+        JSON.stringify({ error: 'QR data or attendee ID is required' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
