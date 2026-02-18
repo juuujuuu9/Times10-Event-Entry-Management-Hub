@@ -6,8 +6,8 @@ const events = await getAllEvents();
 ---
 
 <Layout title="Events">
-  <div class="min-h-screen bg-slate-50">
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+  <div class="min-h-screen bg-background">
+    <header class="bg-card border-b border-border sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-3">
@@ -17,10 +17,10 @@ const events = await getAllEvents();
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <span class="font-bold text-slate-900">Admin</span>
+              <span class="font-bold text-foreground">Admin</span>
             </a>
-            <a href="/admin" class="text-sm text-slate-600 hover:text-[#d63a2e]">Attendees</a>
-            <a href="/" class="text-sm text-slate-600 hover:text-[#d63a2e]">Scanner</a>
+            <a href="/admin" class="text-sm text-muted-foreground hover:text-[#d63a2e]">Attendees</a>
+            <a href="/" class="text-sm text-muted-foreground hover:text-[#d63a2e]">Scanner</a>
           </div>
         </div>
       </div>
@@ -28,7 +28,7 @@ const events = await getAllEvents();
 
     <main class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-slate-900">Events</h1>
+        <h1 class="text-2xl font-bold text-foreground">Events</h1>
         <a
           href="/admin/events/new"
           class="rounded bg-[#d63a2e] px-4 py-2 text-sm font-medium text-white hover:bg-[#c2352a]"
@@ -37,25 +37,25 @@ const events = await getAllEvents();
         </a>
       </div>
 
-      <div class="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <table class="min-w-full divide-y divide-slate-200">
-          <thead class="bg-slate-50">
+      <div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+        <table class="min-w-full divide-y divide-border">
+          <thead class="bg-muted">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Name</th>
-              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Slug</th>
-              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Actions</th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Name</th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Slug</th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-200">
+          <tbody class="divide-y divide-border">
             {events.length === 0 ? (
               <tr>
-                <td colspan="3" class="px-4 py-8 text-center text-slate-500">No events yet. Create one to get started.</td>
+                <td colspan="3" class="px-4 py-8 text-center text-muted-foreground">No events yet. Create one to get started.</td>
               </tr>
             ) : (
               events.map((ev) => (
-                <tr class="hover:bg-slate-50">
-                  <td class="px-4 py-3 text-sm font-medium text-slate-900">{ev.name}</td>
-                  <td class="px-4 py-3 text-sm text-slate-600">{ev.slug}</td>
+                <tr class="hover:bg-muted/50">
+                  <td class="px-4 py-3 text-sm font-medium text-foreground">{ev.name}</td>
+                  <td class="px-4 py-3 text-sm text-muted-foreground">{ev.slug}</td>
                   <td class="px-4 py-3 flex items-center gap-3">
                     <a
                       href={`/admin?event=${ev.id}`}
@@ -73,7 +73,7 @@ const events = await getAllEvents();
                       data-delete-event
                       data-event-id={ev.id}
                       data-event-name={ev.name}
-                      class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
+                      class="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded"
                       title="Delete event"
                       aria-label={`Delete event ${ev.name}`}
                     >

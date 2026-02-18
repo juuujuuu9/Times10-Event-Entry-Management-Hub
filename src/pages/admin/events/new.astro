@@ -3,8 +3,8 @@ import Layout from '../../../layouts/Layout.astro';
 ---
 
 <Layout title="New Event">
-  <div class="min-h-screen bg-slate-50">
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+  <div class="min-h-screen bg-background">
+    <header class="bg-card border-b border-border sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-3">
@@ -14,47 +14,47 @@ import Layout from '../../../layouts/Layout.astro';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <span class="font-bold text-slate-900">Events</span>
+              <span class="font-bold text-foreground">Events</span>
             </a>
-            <a href="/admin" class="text-sm text-slate-600 hover:text-[#d63a2e]">Attendees</a>
+            <a href="/admin" class="text-sm text-muted-foreground hover:text-[#d63a2e]">Attendees</a>
           </div>
         </div>
       </div>
     </header>
 
     <main class="max-w-2xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
-      <h1 class="text-2xl font-bold text-slate-900 mb-6">New event</h1>
+      <h1 class="text-2xl font-bold text-foreground mb-6">New event</h1>
 
-      <form id="new-event-form" class="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <form id="new-event-form" class="space-y-4 rounded-lg border border-border bg-card p-6 shadow-sm">
         <div>
-          <label for="name" class="block text-sm font-medium text-slate-700 mb-1">Name</label>
+          <label for="name" class="block text-sm font-medium text-muted-foreground mb-1">Name</label>
           <input
             type="text"
             id="name"
             name="name"
             required
-            class="w-full rounded border border-slate-300 px-3 py-2 text-slate-900 focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
+            class="w-full rounded border border-input bg-background px-3 py-2 text-foreground focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
             placeholder="e.g. Summer Party 2024"
           />
         </div>
         <div>
-          <label for="slug" class="block text-sm font-medium text-slate-700 mb-1">Slug (URL-friendly)</label>
+          <label for="slug" class="block text-sm font-medium text-muted-foreground mb-1">Slug (URL-friendly)</label>
           <input
             type="text"
             id="slug"
             name="slug"
-            class="w-full rounded border border-slate-300 px-3 py-2 text-slate-900 focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
+            class="w-full rounded border border-input bg-background px-3 py-2 text-foreground focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
             placeholder="e.g. summer-party-2024"
           />
-          <p class="mt-1 text-xs text-slate-500">Used in webhooks and URLs. Lowercase, no spaces.</p>
+          <p class="mt-1 text-xs text-muted-foreground">Used in webhooks and URLs. Lowercase, no spaces.</p>
         </div>
         <div>
-          <label for="micrositeUrl" class="block text-sm font-medium text-slate-700 mb-1">Microsite URL (optional)</label>
+          <label for="micrositeUrl" class="block text-sm font-medium text-muted-foreground mb-1">Microsite URL (optional)</label>
           <input
             type="url"
             id="micrositeUrl"
             name="micrositeUrl"
-            class="w-full rounded border border-slate-300 px-3 py-2 text-slate-900 focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
+            class="w-full rounded border border-input bg-background px-3 py-2 text-foreground focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
             placeholder="https://..."
           />
         </div>
@@ -66,7 +66,7 @@ import Layout from '../../../layouts/Layout.astro';
           >
             Create event
           </button>
-          <a href="/admin/events" class="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <a href="/admin/events" class="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted">
             Cancel
           </a>
         </div>

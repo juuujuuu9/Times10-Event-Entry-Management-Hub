@@ -3,25 +3,26 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(240 10% 3.9%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(240 10% 3.9%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(240 10% 3.9%);
-  --color-primary: hsl(240 5.9% 10%);
-  --color-primary-foreground: hsl(0 0% 98%);
-  --color-secondary: hsl(240 4.8% 95.9%);
-  --color-secondary-foreground: hsl(240 5.9% 10%);
-  --color-muted: hsl(240 4.8% 95.9%);
-  --color-muted-foreground: hsl(240 3.8% 46.1%);
-  --color-accent: hsl(240 4.8% 95.9%);
-  --color-accent-foreground: hsl(240 5.9% 10%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  --color-border: hsl(240 5.9% 90%);
-  --color-input: hsl(240 5.9% 90%);
-  --color-ring: hsl(240 5.9% 10%);
+  /* Reference semantic vars so .dark overrides propagate to bg-background, text-foreground, etc. */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
   --radius: 0.625rem;
 }
 
@@ -58,25 +59,26 @@ body {
 }
 
 .dark {
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  --card: 222 47% 11%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222 47% 11%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222 47% 11%;
-  --secondary: 217 33% 17%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --accent: 217 33% 17%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 63% 31%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217 33% 17%;
-  --input: 217 33% 17%;
-  --ring: 212 100% 50%;
+  /* Neutral grayscale palette - no blue tint */
+  --background: 0 0% 4%;           /* #0a0a0a */
+  --foreground: 0 0% 98%;          /* #fafafa */
+  --card: 0 0% 8%;                 /* #141414 */
+  --card-foreground: 0 0% 98%;     /* #fafafa */
+  --popover: 0 0% 8%;              /* #141414 */
+  --popover-foreground: 0 0% 98%;  /* #fafafa */
+  --primary: 0 0% 98%;             /* #fafafa */
+  --primary-foreground: 0 0% 4%;   /* #0a0a0a */
+  --secondary: 0 0% 12%;           /* #1f1f1f */
+  --secondary-foreground: 0 0% 98%; /* #fafafa */
+  --muted: 0 0% 12%;               /* #1f1f1f */
+  --muted-foreground: 0 0% 63%;    /* #a1a1a1 */
+  --accent: 0 0% 12%;              /* #1f1f1f */
+  --accent-foreground: 0 0% 98%;   /* #fafafa */
+  --destructive: 0 63% 31%;        /* Keep red */
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 12%;              /* #1f1f1f */
+  --input: 0 0% 12%;               /* #1f1f1f */
+  --ring: 0 0% 83%;                /* Neutral gray focus ring */
 }
 
 /* ==========================================================================
@@ -203,15 +205,15 @@ body {
 
 @media (prefers-color-scheme: dark) {
   [data-sonner-toast][data-type="success"] {
-    --normal-bg: #064e3b;
-    --normal-text: #6ee7b7;
-    --normal-border: #059669;
+    --normal-bg: #052e16;
+    --normal-text: #86efac;
+    --normal-border: #166534;
   }
 
   [data-sonner-toast][data-type="error"] {
-    --normal-bg: #7f1d1d;
+    --normal-bg: #450a0a;
     --normal-text: #fca5a5;
-    --normal-border: #dc2626;
+    --normal-border: #991b1b;
   }
 }
 
@@ -223,12 +225,18 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+.dark button:focus-visible,
+.dark a:focus-visible,
+.dark input:focus-visible {
+  outline-color: #525252;
+}
+
 button:focus:not(:focus-visible),
 a:focus:not(:focus-visible) {
   outline: none;
 }
 
-/* 8. SKELETON LOADING */
+/* 8. SKELETON LOADING - Neutral grayscale */
 @keyframes skeleton {
   0% {
     background-position: 200% 0;
@@ -253,9 +261,9 @@ a:focus:not(:focus-visible) {
 .dark .skeleton {
   background: linear-gradient(
     90deg,
-    #1e293b 25%,
-    #334155 50%,
-    #1e293b 75%
+    #1f1f1f 25%,
+    #2a2a2a 50%,
+    #1f1f1f 75%
   );
   background-size: 200% 100%;
 }
@@ -291,26 +299,74 @@ a:focus:not(:focus-visible) {
   }
 }
 
-/* 11. DARK MODE TRANSITIONS */
+/* 11. DARK MODE TRANSITIONS - All Elements */
 html,
-html * {
+html *,
+body,
+body * {
   transition: background-color 200ms ease-out,
               border-color 200ms ease-out,
               color 100ms ease-out;
 }
 
+/* Specific component transitions */
 button,
 input,
 textarea,
 select,
-[role="button"] {
+[role="button"],
+.card,
+[data-card],
+[role="dialog"],
+[role="alertdialog"],
+[role="popover"],
+[data-popover],
+[data-radix-popper-content-wrapper],
+.modal,
+[data-modal],
+[data-sheet],
+[data-dropdown-menu],
+[data-context-menu],
+.tooltip,
+[data-tooltip] {
   transition: background-color 150ms ease-out,
               border-color 150ms ease-out,
+              color 150ms ease-out,
               transform 100ms ease-out,
               box-shadow 150ms ease-out;
 }
 
-/* 12. TABLE STICKY HEADER */
+/* Table rows and cells */
+td, th,
+.table td,
+.table th,
+[data-table] td,
+[data-table] th {
+  transition: background-color 200ms ease-out,
+              border-color 200ms ease-out,
+              color 100ms ease-out;
+}
+
+/* Badge and pill components */
+.badge,
+[data-badge],
+.pill,
+[data-pill] {
+  transition: background-color 150ms ease-out,
+              border-color 150ms ease-out,
+              color 100ms ease-out;
+}
+
+/* Navigation items */
+.nav-item,
+[data-nav-item],
+[role="tab"],
+[role="tablist"] [role="tab"] {
+  transition: background-color 150ms ease-out,
+              color 100ms ease-out;
+}
+
+/* 12. TABLE STICKY HEADER - Neutral dark background */
 .sticky-header thead {
   position: sticky;
   top: 0;
@@ -324,12 +380,12 @@ select,
 }
 
 .dark .sticky-header thead th {
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(10, 10, 10, 0.95);  /* Neutral dark #0a0a0a */
 }
 
 /* 13. CARD HOVER LIFT */
 .card-hover {
-  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out, background-color 200ms ease-out;
 }
 
 .card-hover:hover {
@@ -338,7 +394,7 @@ select,
 }
 
 .dark .card-hover:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* 14. BUTTON PRESS EFFECT */

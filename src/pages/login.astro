@@ -32,22 +32,22 @@ if (session?.user) {
 ---
 
 <Layout title="Staff Login">
-  <div class="min-h-screen flex items-center justify-center bg-slate-50 px-8">
-    <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-md border border-slate-200">
-      <h1 class="text-2xl font-bold mb-2 text-center text-slate-900">Staff Access</h1>
-      <p class="text-slate-600 text-center mb-6">
+  <div class="min-h-screen flex items-center justify-center bg-background px-8">
+    <div class="max-w-md w-full bg-card p-8 rounded-lg shadow-md border border-border">
+      <h1 class="text-2xl font-bold mb-2 text-center text-foreground">Staff Access</h1>
+      <p class="text-muted-foreground text-center mb-6">
         {required === 'staff'
           ? 'Sign in to access this area.'
           : 'Sign in with your company Google account.'}
       </p>
 
       {configError && (
-        <div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded mb-4 text-sm">
-          Auth is not configured. Set <code class="bg-amber-100 px-1 rounded">AUTH_SECRET</code> (and optionally <code class="bg-amber-100 px-1 rounded">GOOGLE_CLIENT_ID</code> / <code class="bg-amber-100 px-1 rounded">GOOGLE_CLIENT_SECRET</code>) in <code class="bg-amber-100 px-1 rounded">.env</code>. Run <code class="bg-amber-100 px-1 rounded">openssl rand -hex 32</code> to generate a secret.
+        <div class="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 px-4 py-3 rounded mb-4 text-sm">
+          Auth is not configured. Set <code class="bg-amber-100 dark:bg-amber-900 px-1 rounded">AUTH_SECRET</code> (and optionally <code class="bg-amber-100 dark:bg-amber-900 px-1 rounded">GOOGLE_CLIENT_ID</code> / <code class="bg-amber-100 dark:bg-amber-900 px-1 rounded">GOOGLE_CLIENT_SECRET</code>) in <code class="bg-amber-100 dark:bg-amber-900 px-1 rounded">.env</code>. Run <code class="bg-amber-100 dark:bg-amber-900 px-1 rounded">openssl rand -hex 32</code> to generate a secret.
         </div>
       )}
       {error && (
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+        <div class="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
           Access denied. Use an allowed staff email or check your configuration.
         </div>
       )}
@@ -55,7 +55,7 @@ if (session?.user) {
       <SignIn
         provider="google"
         options={{ callbackUrl, redirect: true }}
-        class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer font-medium text-slate-900"
+        class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-border rounded-lg hover:bg-muted transition-colors cursor-pointer font-medium text-foreground"
       >
         <svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
           <path

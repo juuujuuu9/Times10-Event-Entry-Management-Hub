@@ -49,10 +49,10 @@ export function AppShell() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <Toaster position="top-center" richColors />
 
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -60,10 +60,10 @@ export function AppShell() {
                 <Calendar className="h-6 w-6 text-white" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-slate-900">
+                <h1 className="text-xl font-bold text-foreground">
                   Event RSVP & Check-in
                 </h1>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Manage your event attendees
                 </p>
               </div>
@@ -86,7 +86,7 @@ export function AppShell() {
         {loading && (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#d63a2e]"></div>
-            <span className="ml-2 text-slate-600">Loading...</span>
+            <span className="ml-2 text-muted-foreground">Loading...</span>
           </div>
         )}
 
@@ -103,12 +103,12 @@ export function AppShell() {
           <div className="relative w-full lg:w-[400px] h-12">
             {/* White track (reference: white container) */}
             <div
-              className="absolute inset-0 rounded-full border border-slate-200 bg-white shadow-sm dark:bg-white dark:border-slate-200"
+              className="absolute inset-0 rounded-full border border-border bg-card shadow-sm"
               aria-hidden
             />
             {/* Sliding active segment (reference: tinted block behind active tab) */}
             <div
-              className="absolute top-2 bottom-2 rounded-full border border-slate-200 bg-slate-100 transition-[transform] duration-200 ease-out dark:border-slate-200 dark:bg-slate-100"
+              className="absolute top-2 bottom-2 rounded-full border border-border bg-muted transition-[transform] duration-200 ease-out"
               style={{
                 width: 'calc((100% - 1rem) / 3)',
                 left: '0.5rem',
@@ -119,19 +119,19 @@ export function AppShell() {
             <TabsList className="relative z-10 grid w-full grid-cols-3 h-full rounded-full border-0 bg-transparent p-2 dark:bg-transparent">
               <TabsTrigger
                 value="rsvp"
-                className="border-0 bg-transparent text-slate-700 data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none dark:bg-transparent dark:text-slate-700 dark:data-[state=active]:bg-transparent dark:data-[state=active]:text-[#d63a2e]"
+                className="border-0 bg-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none"
               >
                 RSVP Form
               </TabsTrigger>
               <TabsTrigger
                 value="checkin"
-                className="border-0 bg-transparent text-slate-700 data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none dark:bg-transparent dark:text-slate-700 dark:data-[state=active]:bg-transparent dark:data-[state=active]:text-[#d63a2e]"
+                className="border-0 bg-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none"
               >
                 Check-in
               </TabsTrigger>
               <TabsTrigger
                 value="admin"
-                className="border-0 bg-transparent text-slate-700 data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none dark:bg-transparent dark:text-slate-700 dark:data-[state=active]:bg-transparent dark:data-[state=active]:text-[#d63a2e]"
+                className="border-0 bg-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none"
               >
                 Admin
               </TabsTrigger>
