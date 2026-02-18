@@ -4,9 +4,13 @@ import { getStaffRole } from './src/lib/staff';
 
 // Force the OAuth redirect_uri when the request URL is wrong (e.g. Vercel infers localhost).
 // Set AUTH_URL (and NEXTAUTH_URL in production) so sign-out and callbacks use the canonical origin.
+// Fallback: VERCEL_URL (Vercel provides this; value is host only, e.g. my-app.vercel.app).
 const authUrl =
   (typeof process !== 'undefined' && (process.env?.AUTH_URL || process.env?.NEXTAUTH_URL)) ||
-  (typeof import.meta !== 'undefined' && ((import.meta.env?.AUTH_URL as string) || (import.meta.env?.NEXTAUTH_URL as string)));
+  (typeof import.meta !== 'undefined' && ((import.meta.env?.AUTH_URL as string) || (import.meta.env?.NEXTAUTH_URL as string))) ||
+  (typeof process !== 'undefined' &&
+    process.env?.VERCEL_URL &&
+    `https://${process.env.VERCEL_URL}`);
 const authBase = authUrl
   ? authUrl.endsWith('/api/auth')
     ? authUrl

@@ -45,3 +45,18 @@ Use the same protocol, host, port, and path as your app (no trailing slash). Def
 4. **Vercel production only:** Astro's `security.checkOrigin` can block auth POSTs due to a serverless URL/origin mismatch. This project disables it in `astro.config.mjs`; Auth.js provides its own CSRF protection for OAuth.
 
 Restart the dev server (or redeploy) after changing env vars.
+
+---
+
+## 3. Sign out redirects to localhost (production only)
+
+**Symptoms:** Clicking "Sign out" redirects to `http://localhost:4321/api/auth/signout?callbackUrl=%2F` or the page hangs.
+
+**Cause:** Auth.js infers the wrong base URL on Vercel (Astro.url.origin can be localhost in serverless).
+
+**Fixes:**
+
+1. **Set `AUTH_URL` in production (recommended):**  
+   In Vercel → Project → Settings → Environment Variables, add `AUTH_URL=https://your-domain.com` (or `https://your-app.vercel.app` if no custom domain). Redeploy.
+
+2. **Fallback:** This project also uses `VERCEL_URL` when `AUTH_URL` is not set (Vercel exposes it automatically). If you use a custom domain, prefer `AUTH_URL` so redirects go to your domain, not `*.vercel.app`.

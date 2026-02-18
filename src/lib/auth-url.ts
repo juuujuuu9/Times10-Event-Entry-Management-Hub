@@ -1,11 +1,14 @@
 /**
  * Canonical origin for auth redirects. Use AUTH_URL when set, else derive from request headers
- * (fixes localhost on Vercel where Astro.url.origin can be wrong).
+ * or VERCEL_URL (fixes localhost on Vercel where Astro.url.origin can be wrong).
  */
 export function getCanonicalOrigin(request?: Request, fallbackOrigin?: string): string {
   const authUrl =
     (typeof process !== 'undefined' && (process.env?.AUTH_URL || process.env?.NEXTAUTH_URL)) ||
-    (typeof import.meta !== 'undefined' && ((import.meta.env?.AUTH_URL as string) || (import.meta.env?.NEXTAUTH_URL as string)));
+    (typeof import.meta !== 'undefined' && ((import.meta.env?.AUTH_URL as string) || (import.meta.env?.NEXTAUTH_URL as string))) ||
+    (typeof process !== 'undefined' &&
+      process.env?.VERCEL_URL &&
+      `https://${process.env.VERCEL_URL}`);
   if (authUrl) return new URL(authUrl).origin;
 
   // Vercel: use Host/X-Forwarded-Host — Astro.url can be localhost.
