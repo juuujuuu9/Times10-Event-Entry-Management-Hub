@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, X, RotateCcw, CheckCircle2, QrCode, Copy, AlertCircle } from 'lucide-react';
+import { Camera, X, RotateCcw, CheckCircle2, QrCode, Copy, AlertCircle, LayoutDashboard } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CheckInResult } from '@/types/attendee';
 import { apiService } from '@/services/api';
@@ -66,8 +66,6 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
         showTorchButtonIfSupported: QR_SCANNER.showTorchButtonIfSupported,
       };
 
-      const CONTINUOUS_MS = 150;
-
       await html5QrCode.start(
         { facingMode: 'environment' },
         config,
@@ -101,7 +99,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
             } finally {
               if (!standalone) processingRef.current = false;
             }
-          }, CONTINUOUS_MS);
+          }, QR_SCANNER.debounceMs);
         },
         () => {}
       );
@@ -137,11 +135,11 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
     <div
       id="reader"
       ref={scannerRef}
-      className="w-full border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center bg-slate-50"
+      className={`w-full border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 ${!scanning ? 'animate-pulse' : ''}`}
       style={{ minHeight: standalone ? 'min(70vh, 400px)' : '300px' }}
     >
       {!scanning && (
-        <div className="text-center text-slate-500">
+        <div className="text-center text-slate-500 dark:text-slate-400">
           <Camera className="h-12 w-12 mx-auto mb-2" />
           <p>
             {standalone
@@ -232,6 +230,14 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
           Mobile Scanner
         </Button>
       )}
+      {standalone && (
+        <Button variant="outline" size="lg" className="w-full border-slate-500 hover:border-slate-600" asChild>
+          <a href="/admin">
+            <LayoutDashboard className="h-4 w-4 mr-2" />
+            Dashboard
+          </a>
+        </Button>
+      )}
     </div>
   );
 
@@ -282,7 +288,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
 
   if (standalone) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 dark:bg-slate-900">
         {ariaLiveEl}
         <div className="w-full max-w-md space-y-4 px-4">
           {readerEl}
@@ -299,8 +305,8 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
       {ariaLiveEl}
       <Card>
         <CardHeader>
-          <CardTitle>QR Code Scanner</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-semibold">QR Code Scanner</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">
             Point your camera at the attendee's QR code to check them in
           </CardDescription>
         </CardHeader>
@@ -315,8 +321,8 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
 
       <Card>
         <CardHeader>
-          <CardTitle>Scan Results</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-semibold">Scan Results</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">
             Results from the latest QR code scan
           </CardDescription>
         </CardHeader>
@@ -398,7 +404,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
               )}
             </div>
           ) : (
-            <div className="text-center text-slate-500 py-8">
+            <div className="text-center text-slate-500 dark:text-slate-400 py-8">
               <QrCode className="h-12 w-12 mx-auto mb-2" />
               <p>No scan results yet</p>
               <p className="text-sm">Start scanning to see results here</p>

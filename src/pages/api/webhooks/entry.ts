@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 import QRCode from 'qrcode';
+import { checkRateLimit, getClientIp } from '../../../lib/rate-limit';
+import { QR_GENERATION } from '../../../config/qr';
 import {
   getEventBySlug,
   createAttendee,
@@ -35,6 +37,23 @@ export const POST: APIRoute = async ({ request }) => {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+
+  const ip = getClientIp(request);
+  const rate = checkRateLimit(`webhook:${ip}`, { maxAttempts: 60 });
+  if (!rate.allowed) {
+    return new Response(
+      JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(rate.retryAfterSec != null && {
+            'Retry-After': String(rate.retryAfterSec),
+          }),
+        },
+      }
+    );
   }
 
   try {
@@ -124,7 +143,11 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     if (sendEmail && qrPayload) {
-      const dataUrl = await QRCode.toDataURL(qrPayload, { margin: 2 });
+      const dataUrl = await QRCode.toDataURL(qrPayload, {
+        width: QR_GENERATION.width,
+        margin: QR_GENERATION.margin,
+        errorCorrectionLevel: QR_GENERATION.errorCorrectionLevel,
+      });
       await sendQRCodeEmail(
         {
           firstName: attendee.firstName as string,

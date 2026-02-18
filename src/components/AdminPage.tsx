@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import type { Attendee } from '@/types/attendee';
 import { apiService } from '@/services/api';
 import { AdminDashboard } from '@/components/AdminDashboard';
+import { EventCombobox } from '@/components/EventCombobox';
 import { Toaster } from '@/components/ui/sonner';
 
 export interface EventOption {
@@ -72,11 +73,10 @@ export function AdminPage({
     loadAttendees(eventId);
   }, [eventId, loadAttendees]);
 
-  const onEventChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
+  const onEventSelect = (eventId: string) => {
     const params = new URLSearchParams(window.location.search);
-    if (value) {
-      params.set('event', value);
+    if (eventId) {
+      params.set('event', eventId);
     } else {
       params.delete('event');
     }
@@ -89,22 +89,14 @@ export function AdminPage({
       <Toaster position="top-center" richColors />
       {events.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center gap-4">
-          <label htmlFor="event-select" className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Event:
           </label>
-          <select
-            id="event-select"
+          <EventCombobox
+            events={events}
             value={eventId}
-            onChange={onEventChange}
-            className="rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
-          >
-            <option value="">Select Event</option>
-            {events.map((ev) => (
-              <option key={ev.id} value={ev.id}>
-                {ev.name}
-              </option>
-            ))}
-          </select>
+            onSelect={onEventSelect}
+          />
           <a
             href="/admin/events"
             className="rounded border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"

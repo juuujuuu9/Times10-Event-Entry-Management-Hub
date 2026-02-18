@@ -2,7 +2,7 @@
 
 **Purpose:** Single source of truth for development progress. Use as the dev checklist; update when completing work; reference from other docs. Feeds into later documentation.
 
-**Last updated:** 2026-02-17 (scanner feedback: traffic light, audio/haptic, overlay)
+**Last updated:** 2026-02-17 (UI/UX polish batch done)
 
 ---
 
@@ -36,6 +36,12 @@
 | Offline capability | Missing | No cache/sync for scanner. |
 | Multi-event / central hub | **Done** | Events table, event-scoped attendees; microsite sync = CSV import (primary); webhook optional. |
 | Add to Wallet / Group / Capacity / Analytics | Not implemented | Optional; prioritize later. |
+| Rate limiting on RSVP/webhook | **Done** | `lib/rate-limit.ts`; 20/min attendees, 60/min webhook; checkin unchanged (5/min). |
+| Scanner debounce (150ms→500ms) | **Done** | `config/qr.ts` debounceMs: 500; CheckInScanner uses it. |
+| QR error correction H | **Done** | `config/qr.ts`; webhook email uses QR_GENERATION. |
+| db.ts split | Backlog | 300+ lines; consider lib/db/attendees, events, checkin. |
+| Real-time sync (multi-staff) | Backlog | Two staff don't see each other's check-ins; optional polling/SSE for admin. |
+| Export/archive before wipe | Backlog | GDPR, data retention; export flow before delete-event. |
 
 ---
 
@@ -90,6 +96,27 @@ Follow this order; check off and date as you complete each item.
 - [x] Protect admin API routes (attendees, send-email, checkin, refresh-qr) with session check — done in middleware.
 - [ ] Capacity widget and/or no-show analytics.
 - [ ] Add to Wallet, group check-in — if needed.
+
+### UI/UX polish (done)
+
+- [x] **Done.** Status badges (success/muted), empty states, table hover actions, activity feed with relative timestamps, typography hierarchy, dark mode (class-based toggle), search with cmd+K (fuse.js), progress bar on check-in rate card, micro-interactions (scanner pulse, delete spinner), density toggle, avatars, bulk select/delete/export, event combobox. See `.cursor/plans/` for full spec.
+
+### Backlog (from OpenKlaw architecture review)
+
+Quick wins (≈30 min each):
+
+| Priority | Item | Notes |
+|----------|------|-------|
+| P1 | Rate limit RSVP + webhook | [x] Done. `lib/rate-limit.ts`; attendees 20/min, webhook 60/min. |
+| P2 | Scanner debounce 150ms→500ms | [x] Done. `config/qr.ts` debounceMs: 500. |
+| P3 | QR `errorCorrectionLevel: 'H'` | [x] Done. `config/qr.ts` + webhook email. |
+| P4 | Split db.ts | Optional refactor: `lib/db/attendees.ts`, `events.ts`, `checkin.ts`. |
+
+Deferred / lower priority:
+
+- **P2 (duplicate check-in UX)**: Already handled — check-in API returns 409 for "already checked in"; both staff see yellow/amber.
+- **Real-time sync**: Admin dashboard doesn't auto-update; consider polling or SSE for multi-staff events.
+- **Export/archive**: Add CSV export flow before event wipe for GDPR/retention.
 
 ---
 

@@ -1,11 +1,15 @@
 ---
 import ScannerLayout from '../layouts/ScannerLayout.astro';
 import { CheckInScanner } from '../components/CheckInScanner';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { Toaster } from '../components/ui/sonner';
 ---
 
 <ScannerLayout>
-  <div class="min-h-screen">
+  <div class="min-h-screen bg-slate-100 dark:bg-slate-900 relative">
+    <div class="absolute top-4 right-4 z-10">
+      <ThemeToggle client:load />
+    </div>
     <main class="min-h-screen">
       <CheckInScanner client:load standalone={true} />
     </main>

@@ -6,6 +6,7 @@ import {
   deleteAttendee,
 } from '../../lib/db';
 import { getOrCreateQRPayload } from '../../lib/qr-token';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
 export const GET: APIRoute = async ({ request }) => {
   try {
@@ -25,6 +26,23 @@ export const GET: APIRoute = async ({ request }) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const ip = getClientIp(request);
+  const rate = checkRateLimit(`attendees:${ip}`, { maxAttempts: 20 });
+  if (!rate.allowed) {
+    return new Response(
+      JSON.stringify({ error: 'Too many RSVPs. Please try again later.' }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(rate.retryAfterSec != null && {
+            'Retry-After': String(rate.retryAfterSec),
+          }),
+        },
+      }
+    );
+  }
+
   try {
     const data = (await request.json()) || {};
     if (!data.firstName || !data.lastName || !data.email) {

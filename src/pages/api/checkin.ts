@@ -6,14 +6,8 @@ import {
   checkInAttendeeWithTokenScoped,
 } from '../../lib/db';
 import { decodeQR } from '../../lib/qr';
-import { checkRateLimit } from '../../lib/rate-limit';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 import { logCheckInAttempt } from '../../lib/audit';
-
-function getClientIp(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0]?.trim() ?? 'unknown';
-  return request.headers.get('x-real-ip') ?? 'unknown';
-}
 
 export const POST: APIRoute = async ({ request }) => {
   const ip = getClientIp(request);
