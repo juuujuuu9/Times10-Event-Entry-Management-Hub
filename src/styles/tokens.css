@@ -1,0 +1,78 @@
+/**
+ * Radix Colors — Theme Tokens
+ * Maps Radix scales + brand (#d63a2e) to semantic tokens.
+ * Light scales apply to :root; dark scales apply to .dark / .dark-theme.
+ */
+
+@import "@radix-ui/colors/mauve.css";
+@import "@radix-ui/colors/mauve-dark.css";
+@import "@radix-ui/colors/green.css";
+@import "@radix-ui/colors/green-dark.css";
+@import "@radix-ui/colors/red.css";
+@import "@radix-ui/colors/red-dark.css";
+@import "@radix-ui/colors/amber.css";
+@import "@radix-ui/colors/amber-dark.css";
+
+/* ==========================================================================
+   Semantic Tokens (Radix-based)
+   ========================================================================== */
+
+:root {
+  /* Background / Canvas */
+  --bg-app: var(--mauve-1);
+  --bg-card: var(--mauve-2);
+  --bg-hover: var(--mauve-3);
+  --bg-muted: var(--mauve-3);
+
+  /* Borders */
+  --border-subtle: var(--mauve-6);
+  --border-strong: var(--mauve-8);
+
+  /* Text */
+  --text-primary: var(--mauve-12);
+  --text-secondary: var(--mauve-11);
+  --text-muted: var(--mauve-10);
+
+  /* Semantic (success / error / warning) */
+  --success-9: var(--green-9);
+  --success-1: var(--green-1);
+  --error-9: var(--red-9);
+  --error-1: var(--red-1);
+  --warning-9: var(--amber-9);
+  --warning-1: var(--amber-1);
+
+  /* Brand scale (#d63a2e) — 3-step manual mapping */
+  --brand-2: #fceceb;
+  --brand-9: #d63a2e;
+  --brand-10: #c43328;
+  --brand-11: #9a2a21;
+}
+
+.dark,
+.dark-theme {
+  --bg-app: var(--mauve-1);
+  --bg-card: var(--mauve-2);
+  --bg-hover: var(--mauve-3);
+  --bg-muted: var(--mauve-3);
+
+  --border-subtle: var(--mauve-6);
+  --border-strong: var(--mauve-8);
+
+  --text-primary: var(--mauve-12);
+  --text-secondary: var(--mauve-11);
+  --text-muted: var(--mauve-10);
+
+  /* Semantic — Radix dark scales handle these */
+  --success-9: var(--green-9);
+  --success-1: var(--green-1);
+  --error-9: var(--red-9);
+  --error-1: var(--red-1);
+  --warning-9: var(--amber-9);
+  --warning-1: var(--amber-1);
+
+  /* Brand — consistent across modes */
+  --brand-2: rgba(214, 58, 46, 0.15);
+  --brand-9: #d63a2e;
+  --brand-10: #c43328;
+  --brand-11: #9a2a21;
+}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Users, Calendar } from 'lucide-react';
+import { CheckCircle2, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 import type { Attendee } from '@/types/attendee';
@@ -56,7 +56,7 @@ export function AppShell() {
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="bg-[#d63a2e] p-2 rounded-lg">
+              <div className="bg-primary p-2 rounded-lg">
                 <Calendar className="h-6 w-6 text-white" />
               </div>
               <div className="hidden sm:block">
@@ -69,10 +69,6 @@ export function AppShell() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Badge variant="secondary" className="text-sm">
-                <Users className="h-4 w-4 mr-1" />
-                {attendees.length} Total
-              </Badge>
               <Badge variant="default" className="text-sm bg-green-600">
                 <CheckCircle2 className="h-4 w-4 mr-1" />
                 {attendees.filter((a) => a.checkedIn).length} Checked In
@@ -85,13 +81,13 @@ export function AppShell() {
       <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
         {loading && (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#d63a2e]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-2 text-muted-foreground">Loading...</span>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-[var(--red-2)] border border-[var(--red-6)] text-[var(--red-11)] px-4 py-3 rounded-lg mb-6">
             <p>{error}</p>
             <Button onClick={loadAttendees} variant="outline" size="sm" className="mt-2">
               Retry
@@ -119,19 +115,19 @@ export function AppShell() {
             <TabsList className="relative z-10 grid w-full grid-cols-3 h-full rounded-full border-0 bg-transparent p-2 dark:bg-transparent">
               <TabsTrigger
                 value="rsvp"
-                className="border-0 bg-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none"
+                className="border-0 bg-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:font-semibold data-[state=active]:shadow-none"
               >
                 RSVP Form
               </TabsTrigger>
               <TabsTrigger
                 value="checkin"
-                className="border-0 bg-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none"
+                className="border-0 bg-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:font-semibold data-[state=active]:shadow-none"
               >
                 Check-in
               </TabsTrigger>
               <TabsTrigger
                 value="admin"
-                className="border-0 bg-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-[#d63a2e] data-[state=active]:font-semibold data-[state=active]:shadow-none"
+                className="border-0 bg-transparent text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:font-semibold data-[state=active]:shadow-none"
               >
                 Admin
               </TabsTrigger>

@@ -30,15 +30,15 @@ const selectedEventId = Astro.url.searchParams.get('event') ?? '';
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-3">
             <a href="/admin" class="flex items-center gap-3">
-              <div class="bg-[#d63a2e] p-2 rounded-lg">
+              <div class="bg-primary p-2 rounded-lg">
                 <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <span class="font-bold text-foreground">Admin</span>
             </a>
-            <a href="/" class="text-sm text-muted-foreground hover:text-[#d63a2e]">Scanner</a>
-            <a href="/admin/events" class="text-sm text-muted-foreground hover:text-[#d63a2e]">Events</a>
+            <a href="/" class="text-sm text-muted-foreground hover:text-primary">Scanner</a>
+            <a href="/admin/events" class="text-sm text-muted-foreground hover:text-primary">Events</a>
           </div>
           <div class="flex items-center gap-4">
             <ThemeToggle client:load />
@@ -47,10 +47,10 @@ const selectedEventId = Astro.url.searchParams.get('event') ?? '';
               <form action={signOutForm.action} method="POST" class="inline">
                 <input type="hidden" name="callbackUrl" value={signOutForm.callbackUrl} />
                 <input type="hidden" name="csrfToken" value={signOutForm.csrfToken} />
-                <button type="submit" class="text-sm text-muted-foreground hover:text-[#d63a2e] bg-transparent border-none cursor-pointer p-0 font-inherit">Sign out</button>
+                <button type="submit" class="text-sm text-muted-foreground hover:text-primary bg-transparent border-none cursor-pointer p-0 font-inherit">Sign out</button>
               </form>
             ) : (
-              <a href={signOutUrl} class="text-sm text-muted-foreground hover:text-[#d63a2e]">Sign out</a>
+              <a href={signOutUrl} class="text-sm text-muted-foreground hover:text-primary">Sign out</a>
             )}
           </div>
         </div>
@@ -58,12 +58,8 @@ const selectedEventId = Astro.url.searchParams.get('event') ?? '';
     </header>
 
     <main class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
-      <div class="mb-6">
-        <h1 class="text-2xl font-semibold text-foreground">Attendees</h1>
-        <p class="text-sm text-muted-foreground mt-0.5">Manage event attendees and check-in status</p>
-      </div>
       {pageError ? (
-        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+        <div class="rounded-lg border border-[var(--red-6)] bg-[var(--red-2)] p-4 text-[var(--red-11)]">
           <p class="font-medium">Could not load admin</p>
           <p class="mt-1 text-sm">{pageError}</p>
           <p class="mt-2 text-sm">Check the server logs and ensure DATABASE_URL is set. Refresh the page to retry.</p>

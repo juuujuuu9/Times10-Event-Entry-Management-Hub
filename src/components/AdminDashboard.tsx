@@ -37,7 +37,6 @@ import {
   Download,
   RotateCcw,
   Trash2,
-  Upload,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Fuse from 'fuse.js';
@@ -74,7 +73,6 @@ export function AdminDashboard({
   );
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
-  const [importing, setImporting] = useState(false);
   const [sortDescending, setSortDescending] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [density, setDensity] = useState<'comfortable' | 'compact'>(() => {
@@ -82,7 +80,6 @@ export function AdminDashboard({
     return (localStorage.getItem('table-density') as 'comfortable' | 'compact') || 'comfortable';
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const fuse = useRef(
@@ -94,14 +91,6 @@ export function AdminDashboard({
   useEffect(() => {
     fuse.setCollection(attendees);
   }, [attendees]);
-
-  const recentCheckIns = [...attendees]
-    .filter((a) => a.checkedIn && a.checkedInAt)
-    .sort(
-      (a, b) =>
-        new Date(b.checkedInAt!).getTime() - new Date(a.checkedInAt!).getTime()
-    )
-    .slice(0, 10);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -190,50 +179,6 @@ export function AdminDashboard({
     return sortDescending ? -cmp : cmp;
   });
 
-  const exportToCSV = () => {
-    const headers = [
-      'First Name',
-      'Last Name',
-      'Email',
-      'Phone',
-      'Company',
-      'Dietary Restrictions',
-      'Checked In',
-      'Check-in Time',
-      'Registration Date',
-    ];
-    const csvContent = [
-      headers.join(','),
-      ...sortedAttendees.map((attendee) =>
-        [
-          attendee.firstName,
-          attendee.lastName,
-          attendee.email,
-          attendee.phone ?? '',
-          attendee.company ?? '',
-          attendee.dietaryRestrictions ?? '',
-          attendee.checkedIn ? 'Yes' : 'No',
-          attendee.checkedInAt
-            ? new Date(attendee.checkedInAt).toLocaleString()
-            : '',
-          new Date(attendee.rsvpAt).toLocaleDateString(),
-        ]
-          .map((field) => `"${field}"`)
-          .join(',')
-      ),
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `event-attendees-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this attendee?')) return;
     setDeletingId(id);
@@ -245,22 +190,6 @@ export function AdminDashboard({
       toast.error('Failed to delete attendee');
     } finally {
       setDeletingId(null);
-    }
-  };
-
-  const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !eventId) return;
-    e.target.value = '';
-    setImporting(true);
-    try {
-      const { imported, skipped } = await apiService.importAttendeesCSV(eventId, file);
-      toast.success(`Imported ${imported} attendee(s)${skipped > 0 ? `, ${skipped} skipped (duplicate email)` : ''}`);
-      onRefresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Import failed');
-    } finally {
-      setImporting(false);
     }
   };
 
@@ -276,55 +205,8 @@ export function AdminDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="relative w-full">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <Input
-          ref={searchInputRef}
-          placeholder="Search attendees..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 pr-20"
-        />
-        <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Attendees
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{attendees.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Checked In</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {attendees.filter((a) => a.checkedIn).length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Users className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {attendees.filter((a) => !a.checkedIn).length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <Card className="col-span-2 md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Check-in Rate</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-blue-600" />
@@ -357,78 +239,31 @@ export function AdminDashboard({
             )}
           </CardContent>
         </Card>
-      </div>
-
-      {recentCheckIns.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">
-              Recent check-ins
-            </CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
-              Latest check-in activity
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Checked In</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
-              {recentCheckIns.map((a) => {
-                const isRecent =
-                  a.checkedInAt &&
-                  Date.now() - new Date(a.checkedInAt).getTime() < 5 * 60 * 1000;
-                return (
-                  <li
-                    key={a.id}
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <span
-                      className={`h-2 w-2 rounded-full shrink-0 ${
-                        isRecent ? 'bg-green-500' : 'bg-transparent'
-                      }`}
-                      aria-hidden
-                    />
-                    <span className="font-medium">
-                      {a.firstName} {a.lastName}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {a.checkedInAt && formatRelativeTime(a.checkedInAt)}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="text-2xl font-bold text-green-600">
+              {attendees.filter((a) => a.checkedIn).length}
+            </div>
           </CardContent>
         </Card>
-      )}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Users className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {attendees.filter((a) => !a.checkedIn).length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
-        {eventId && (
-          <>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={handleImportCSV}
-              disabled={importing}
-            />
-            <Button
-              variant="outline"
-              disabled={importing}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {importing ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Upload className="h-4 w-4 mr-2" />
-              )}
-              {importing ? 'Importing…' : 'Import CSV'}
-            </Button>
-          </>
-        )}
-        <Button onClick={exportToCSV} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export CSV
-        </Button>
         <Button onClick={onRefresh} variant="outline">
           <RotateCcw className="h-4 w-4 mr-2" />
           Refresh
@@ -436,38 +271,53 @@ export function AdminDashboard({
       </div>
 
       <Card>
-        <CardHeader className="flex-row flex-wrap gap-4">
+        <CardHeader className="flex flex-col gap-4">
           <div>
             <CardTitle className="text-2xl font-semibold">Attendee List</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
               {filteredAttendees.length} of {attendees.length} attendees
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2 ml-auto">
-            <span className="text-xs text-muted-foreground">Density:</span>
-            <div className="flex rounded-md border overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setDensity('comfortable')}
-                className={`px-2 py-1 text-xs font-medium ${
-                  density === 'comfortable'
-                    ? 'bg-muted'
-                    : 'hover:bg-muted/50'
-                }`}
-              >
-                Comfortable
-              </button>
-              <button
-                type="button"
-                onClick={() => setDensity('compact')}
-                className={`px-2 py-1 text-xs font-medium border-l ${
-                  density === 'compact'
-                    ? 'bg-muted'
-                    : 'hover:bg-muted/50'
-                }`}
-              >
-                Compact
-              </button>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
+            <div className="relative w-full sm:flex-1 sm:min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              <Input
+                ref={searchInputRef}
+                placeholder="Search attendees..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-10 h-9 w-full"
+              />
+              <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-5 select-none items-center gap-0.5 rounded border bg-muted px-1 font-mono text-[9px] font-medium text-muted-foreground">
+                <span className="text-[10px]">⌘</span>K
+              </kbd>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 shrink-0 sm:ml-auto">
+              <span className="text-xs text-muted-foreground">Density:</span>
+              <div className="flex rounded-md border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setDensity('comfortable')}
+                  className={`px-2 py-1 text-xs font-medium ${
+                    density === 'comfortable'
+                      ? 'bg-muted'
+                      : 'hover:bg-muted/50'
+                  }`}
+                >
+                  Comfortable
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDensity('compact')}
+                  className={`px-2 py-1 text-xs font-medium border-l ${
+                    density === 'compact'
+                      ? 'bg-muted'
+                      : 'hover:bg-muted/50'
+                  }`}
+                >
+                  Compact
+                </button>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -475,8 +325,7 @@ export function AdminDashboard({
           {sortedAttendees.length === 0 ? (
             <EmptyState
               onAddAttendee={() => (window.location.href = '/')}
-              onImportCSV={eventId ? () => fileInputRef.current?.click() : undefined}
-              importing={importing}
+              onImportCSV={eventId ? () => { window.location.href = `/admin/events/import?event=${eventId}`; } : undefined}
             />
           ) : (
           <div className="space-y-2">
@@ -549,9 +398,9 @@ export function AdminDashboard({
                 {sortedAttendees.map((attendee) => (
                   <TableRow
                     key={attendee.id}
-                    className={`group ${density === 'compact' ? '' : ''}`}
+                    className="group"
                   >
-                    <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>
+                    <TableCell className={`py-1 ${density === 'comfortable' ? 'sm:py-3' : ''}`}>
                       <input
                         type="checkbox"
                         checked={selectedIds.has(attendee.id)}
@@ -560,7 +409,7 @@ export function AdminDashboard({
                         aria-label={`Select ${formatNameLastFirst(attendee)}`}
                       />
                     </TableCell>
-                    <TableCell className={`font-medium ${density === 'compact' ? 'py-1' : 'py-3'}`}>
+                    <TableCell className={`font-medium py-1 ${density === 'comfortable' ? 'sm:py-3' : ''}`}>
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium shrink-0">
                           {getInitials(attendee)}
@@ -568,17 +417,17 @@ export function AdminDashboard({
                         {formatNameLastFirst(attendee)}
                       </div>
                     </TableCell>
-                    <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>{attendee.email}</TableCell>
-                    <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>{attendee.company || '-'}</TableCell>
-                    <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>
+                    <TableCell className={`py-1 ${density === 'comfortable' ? 'sm:py-3' : ''}`}>{attendee.email}</TableCell>
+                    <TableCell className={`py-1 ${density === 'comfortable' ? 'sm:py-3' : ''}`}>{attendee.company || '-'}</TableCell>
+                    <TableCell className={`py-1 ${density === 'comfortable' ? 'sm:py-3' : ''}`}>
                       <StatusBadge status={attendee.checkedIn ? 'checked-in' : 'pending'} />
                     </TableCell>
-                    <TableCell className={`text-sm text-slate-500 dark:text-slate-400 ${density === 'compact' ? 'py-1' : 'py-3'}`}>
+                    <TableCell className={`text-sm text-slate-500 dark:text-slate-400 py-1 ${density === 'comfortable' ? 'sm:py-3' : ''}`}>
                       {attendee.checkedIn && attendee.checkedInAt
                         ? formatRelativeTime(attendee.checkedInAt)
                         : '—'}
                     </TableCell>
-                    <TableCell className={density === 'compact' ? 'py-1' : 'py-3'}>
+                    <TableCell className={`py-1 ${density === 'comfortable' ? 'sm:py-3' : ''}`}>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                         <Button
                           size="sm"

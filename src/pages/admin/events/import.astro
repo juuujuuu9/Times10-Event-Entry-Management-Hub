@@ -1,0 +1,137 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getEventById, getAllEvents } from '../../../lib/db';
+
+const eventId = Astro.url.searchParams.get('event')?.trim();
+let event: Awaited<ReturnType<typeof getEventById>> = null;
+const events = await getAllEvents();
+
+if (eventId) {
+  event = await getEventById(eventId);
+}
+---
+
+<Layout title="Import CSV">
+  <div class="min-h-screen bg-background">
+    <header class="bg-card border-b border-border sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-3">
+            <a href="/admin/events" class="flex items-center gap-3">
+              <div class="bg-primary p-2 rounded-lg">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <span class="font-bold text-foreground">Events</span>
+            </a>
+            <a href="/admin" class="text-sm text-muted-foreground hover:text-primary">Attendees</a>
+            <a href="/" class="text-sm text-muted-foreground hover:text-primary">Scanner</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
+      <h1 class="text-2xl font-bold text-foreground mb-6">Import CSV</h1>
+
+      {!eventId || !event ? (
+        <div class="rounded-lg border border-border bg-card p-6">
+          <p class="text-muted-foreground mb-4">Select an event to import attendees into:</p>
+          <ul class="space-y-2">
+            {events.map((ev) => (
+              <li>
+                <a
+                  href={`/admin/events/import?event=${ev.id}`}
+                  class="text-primary hover:underline font-medium"
+                >
+                  {ev.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+          {events.length === 0 && (
+            <p class="text-sm text-muted-foreground">No events yet. <a href="/admin/events/new" class="text-primary hover:underline">Create one</a> first.</p>
+          )}
+        </div>
+      ) : (
+        <form id="import-form" class="space-y-4 rounded-lg border border-border bg-card p-6 shadow-sm">
+          <p class="text-sm text-muted-foreground">
+            Importing into <strong class="text-foreground">{event.name}</strong>
+          </p>
+          <input type="hidden" name="eventId" value={event.id} />
+          <div>
+            <label for="file" class="block text-sm font-medium text-muted-foreground mb-1">CSV file</label>
+            <input
+              type="file"
+              id="file"
+              name="file"
+              accept=".csv,text/csv"
+              required
+              class="w-full rounded border border-input bg-background px-3 py-2 text-foreground file:mr-4 file:rounded file:border-0 file:bg-primary file:px-4 file:py-2 file:text-primary-foreground file:text-sm"
+            />
+            <p class="mt-1 text-xs text-muted-foreground">
+              CSV must include headers. Map first name, last name, email. Duplicates (same email) are skipped.
+            </p>
+          </div>
+          <div id="form-error" class="hidden text-sm text-[var(--red-11)]"></div>
+          <div id="form-success" class="hidden text-sm text-[var(--green-11)]"></div>
+          <div class="flex gap-3">
+            <button
+              type="submit"
+              id="submit-btn"
+              class="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
+            >
+              Import
+            </button>
+            <a
+              href="/admin/events"
+              class="rounded border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+            >
+              Cancel
+            </a>
+          </div>
+        </form>
+      )}
+    </main>
+  </div>
+
+  <script define:vars={{ eventId: event?.id }}>
+    const form = document.getElementById('import-form');
+    if (!form || !eventId) return;
+    const fileInput = form.querySelector('input[name="file"]');
+    const errorEl = document.getElementById('form-error');
+    const successEl = document.getElementById('form-success');
+    const submitBtn = document.getElementById('submit-btn');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!errorEl || !successEl || !submitBtn || !fileInput?.files?.length) return;
+      errorEl.classList.add('hidden');
+      successEl.classList.add('hidden');
+      submitBtn.disabled = true;
+      const formData = new FormData();
+      formData.append('eventId', eventId);
+      formData.append('file', fileInput.files[0]);
+      try {
+        const res = await fetch('/api/attendees/import', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          errorEl.textContent = data.error || `Error ${res.status}`;
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        successEl.textContent = `Imported ${data.imported ?? 0} attendee(s)${(data.skipped ?? 0) > 0 ? `, ${data.skipped} skipped (duplicate email)` : ''}`;
+        successEl.classList.remove('hidden');
+        fileInput.value = '';
+      } catch (err) {
+        errorEl.textContent = 'Import failed. Try again.';
+        errorEl.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</Layout>

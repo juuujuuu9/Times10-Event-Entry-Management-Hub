@@ -89,23 +89,22 @@ export function AdminPage({
       <Toaster position="top-center" richColors />
       {events.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center gap-4">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Event:
-          </label>
-          <EventCombobox
-            events={events}
-            value={eventId}
-            onSelect={onEventSelect}
-          />
+          <div className="w-full min-w-0 md:w-auto">
+            <EventCombobox
+              events={events}
+              value={eventId}
+              onSelect={onEventSelect}
+            />
+          </div>
           <a
             href="/admin/events"
-            className="rounded border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+            className="rounded border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
             Manage events
           </a>
           <a
             href="/admin/events/new"
-            className="text-sm text-[#d63a2e] hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             + New event
           </a>
@@ -113,12 +112,12 @@ export function AdminPage({
       )}
       {loading && (
         <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#d63a2e]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           <span className="ml-2 text-slate-600">Loading...</span>
         </div>
       )}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-[var(--red-2)] border border-[var(--red-6)] text-[var(--red-11)] px-4 py-3 rounded-lg mb-6">
           <p>{error}</p>
           <button
             type="button"

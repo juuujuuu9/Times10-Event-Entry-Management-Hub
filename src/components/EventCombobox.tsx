@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import type { EventOption } from '@/components/AdminPage';
 
 interface EventComboboxProps {
@@ -39,9 +39,8 @@ export function EventCombobox({
   }, []);
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative w-full md:w-[220px]">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           value={open ? query : selectedEvent?.name ?? ''}
           onChange={(e) => {
@@ -50,12 +49,15 @@ export function EventCombobox({
           }}
           onFocus={() => setOpen(true)}
           placeholder={selectedEvent ? 'Search events...' : 'Select event...'}
-          className="pl-9 w-[220px]"
+          className={`pr-9 w-full md:w-[220px] text-[1.25rem] ${
+            !open && selectedEvent ? 'font-bold' : ''
+          }`}
         />
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
       </div>
       {open && (
         <ul
-          className="absolute z-50 mt-1 max-h-48 w-[220px] overflow-auto rounded-md border bg-popover py-1 shadow-md"
+          className="absolute z-50 mt-1 max-h-48 w-full md:w-[220px] overflow-auto rounded-md border bg-popover py-1 shadow-md"
           role="listbox"
         >
           {filtered.length === 0 ? (
@@ -84,7 +86,7 @@ export function EventCombobox({
                   role="option"
                   aria-selected={ev.id === value}
                   className={`cursor-pointer px-3 py-2 text-sm hover:bg-accent ${
-                    ev.id === value ? 'bg-accent' : ''
+                    ev.id === value ? 'bg-accent font-bold' : ''
                   }`}
                   onClick={() => {
                     onSelect(ev.id);

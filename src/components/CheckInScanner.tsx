@@ -135,11 +135,11 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
     <div
       id="reader"
       ref={scannerRef}
-      className={`w-full border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 ${!scanning ? 'animate-pulse' : ''}`}
+      className={`w-full border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted scanner-frame ${!scanning ? 'animate-pulse' : ''}`}
       style={{ minHeight: standalone ? 'min(70vh, 400px)' : '300px' }}
     >
       {!scanning && (
-        <div className="text-center text-slate-500 dark:text-slate-400">
+        <div className="text-center text-muted-foreground">
           <Camera className="h-12 w-12 mx-auto mb-2" />
           <p>
             {standalone
@@ -222,7 +222,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
           onClick={handleMobileScannerAction}
           variant="outline"
           size="default"
-          className={`w-full transition-colors duration-150 bg-slate-200 text-slate-600 border-slate-300 hover:bg-slate-300 ${
+          className={`w-full transition-colors duration-150 bg-secondary text-secondary-foreground border-border hover:bg-accent ${
             copyFlash ? 'bg-red-500! text-white! border-red-500!' : ''
           }`}
         >
@@ -231,7 +231,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
         </Button>
       )}
       {standalone && (
-        <Button variant="outline" size="lg" className="w-full border-slate-500 hover:border-slate-600" asChild>
+        <Button variant="outline" size="lg" className="w-full" asChild>
           <a href="/admin">
             <LayoutDashboard className="h-4 w-4 mr-2" />
             Dashboard
@@ -242,7 +242,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
   );
 
   const errorEl = cameraError && (
-    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+    <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg">
       <p className="text-sm">{cameraError}</p>
     </div>
   );
@@ -252,10 +252,10 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
       <div
         className={`fixed inset-0 z-50 flex flex-col items-center justify-center px-4 ${
           scanResult.success
-            ? 'bg-green-500'
+            ? 'bg-success'
             : scanResult.alreadyCheckedIn
-              ? 'bg-amber-500'
-              : 'bg-red-500'
+              ? 'bg-warning'
+              : 'bg-error'
         }`}
       >
         <div className="text-white text-center max-w-sm">
@@ -288,7 +288,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
 
   if (standalone) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 dark:bg-slate-900">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background">
         {ariaLiveEl}
         <div className="w-full max-w-md space-y-4 px-4">
           {readerEl}
@@ -331,29 +331,21 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
             <div
               className={`p-4 rounded-lg ${
                 scanResult.success
-                  ? 'bg-green-50 border border-green-200'
+                  ? 'bg-[var(--green-2)] border border-[var(--green-6)] text-[var(--green-11)]'
                   : scanResult.alreadyCheckedIn
-                    ? 'bg-amber-50 border border-amber-200'
-                    : 'bg-red-50 border border-red-200'
+                    ? 'bg-[var(--amber-2)] border border-[var(--amber-6)] text-[var(--amber-11)]'
+                    : 'bg-[var(--red-2)] border border-[var(--red-6)] text-[var(--red-11)]'
               }`}
             >
               <div className="flex items-center gap-2 mb-2">
                 {scanResult.success ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <CheckCircle2 className="h-5 w-5 text-[var(--green-11)]" />
                 ) : scanResult.alreadyCheckedIn ? (
-                  <AlertCircle className="h-5 w-5 text-amber-600" />
+                  <AlertCircle className="h-5 w-5 text-[var(--amber-11)]" />
                 ) : (
-                  <X className="h-5 w-5 text-red-600" />
+                  <X className="h-5 w-5 text-destructive" />
                 )}
-                <p
-                  className={`font-medium ${
-                    scanResult.success
-                      ? 'text-green-800'
-                      : scanResult.alreadyCheckedIn
-                        ? 'text-amber-800'
-                        : 'text-red-800'
-                  }`}
-                >
+                <p className="font-medium">
                   {scanResult.success
                     ? 'Check-in Successful!'
                     : scanResult.alreadyCheckedIn
@@ -361,29 +353,17 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
                       : 'Check-in Failed'}
                 </p>
               </div>
-              <p
-                className={`text-sm ${
-                  scanResult.success
-                    ? 'text-green-700'
-                    : scanResult.alreadyCheckedIn
-                      ? 'text-amber-700'
-                      : 'text-red-700'
-                }`}
-              >
+              <p className="text-sm opacity-90">
                 {scanResult.message}
               </p>
               {(scanResult.success || scanResult.alreadyCheckedIn) &&
                 scanResult.event && (
-                  <p
-                    className={`text-sm mt-1 ${
-                      scanResult.success ? 'text-green-700' : 'text-amber-700'
-                    }`}
-                  >
+                  <p className="text-sm mt-1 opacity-90">
                     Event: {scanResult.event.name}
                   </p>
                 )}
               {scanResult.attendee && (
-                <div className="mt-4 pt-4 border-t border-current border-opacity-20">
+                <div className="mt-4 pt-4 border-t border-current/20">
                   <p className="text-sm font-medium mb-2">Attendee Details:</p>
                   <div className="text-sm space-y-1">
                     <p>
@@ -404,7 +384,7 @@ export function CheckInScanner({ onCheckIn, standalone = false }: CheckInScanner
               )}
             </div>
           ) : (
-            <div className="text-center text-slate-500 dark:text-slate-400 py-8">
+            <div className="text-center text-muted-foreground py-8">
               <QrCode className="h-12 w-12 mx-auto mb-2" />
               <p>No scan results yet</p>
               <p className="text-sm">Start scanning to see results here</p>

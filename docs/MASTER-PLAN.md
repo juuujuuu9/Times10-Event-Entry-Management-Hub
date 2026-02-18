@@ -2,7 +2,7 @@
 
 **Purpose:** Single source of truth for development progress. Use as the dev checklist; update when completing work; reference from other docs. Feeds into later documentation.
 
-**Last updated:** 2026-02-18 (UI Modernization Phase 1–2)
+**Last updated:** 2026-02-18 (Radix Colors implementation)
 
 ---
 
@@ -105,6 +105,10 @@ Follow this order; check off and date as you complete each item.
 
 - [x] **Done.** Phase 1 — Foundation: `src/lib/formatters.ts` (formatRelativeTime), animation styles in `global.css` (status flip, QR breathing, live indicator, skeleton, etc.), `StatusBadge` and `EmptyState` primitives in `src/components/ui/`. Phase 2 — Table: gradient avatars, `StatusBadge` in status column, Check-in column with `formatRelativeTime(checkedInAt)`, hover-only action buttons, `EmptyState` when no attendees. See [docs/ui-modernization/](ui-modernization/) and `.cursor/rules/ui-modernization.mdc`.
 
+### Radix Colors
+
+- [x] **Done.** `@radix-ui/colors` installed; `src/styles/tokens.css` with mauve/green/red/amber scales + brand (#d63a2e) mapping; `global.css` themed via semantic tokens; scanner overlay, CTAs, toasts, error states, QR frame use Radix vars. See [docs/ui-modernization/radix-colors-mapping.md](ui-modernization/radix-colors-mapping.md).
+
 ### Backlog (from OpenKlaw architecture review)
 
 Quick wins (≈30 min each):
@@ -132,7 +136,7 @@ Deferred / lower priority:
 | [STEP-2-CENTRAL-HUB.md](STEP-2-CENTRAL-HUB.md) | Item 3: Central hub, events, CSV import (primary), webhook optional. |
 | [FORM-MICROSITE-SETUP.md](FORM-MICROSITE-SETUP.md) | Linking a form microsite to the hub; copying Cursor rule into new projects. |
 | [form-microsite-hub-integration.mdc](form-microsite-hub-integration.mdc) | Portable Cursor rule: copy to new microsite’s `.cursor/rules/` for hub integration context. |
-| [ui-modernization/](ui-modernization/) | UI Modernization: CURSOR-CHECKLIST, qr-ui-components, qr-ui-animations.css. Rule: `.cursor/rules/ui-modernization.mdc`. |
+| [ui-modernization/](ui-modernization/) | UI Modernization: CURSOR-CHECKLIST, qr-ui-components, qr-ui-animations.css. Rule: `.cursor/rules/ui-modernization.mdc`. Radix Colors: `radix-colors-mapping.md`. |
 | (This implementation) | Item 2: auth-astro, middleware, login.astro, staff allowlist (src/lib/staff.ts). |
 
 ---

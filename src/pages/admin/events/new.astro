@@ -9,14 +9,14 @@ import Layout from '../../../layouts/Layout.astro';
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-3">
             <a href="/admin/events" class="flex items-center gap-3">
-              <div class="bg-[#d63a2e] p-2 rounded-lg">
+              <div class="bg-primary p-2 rounded-lg">
                 <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <span class="font-bold text-foreground">Events</span>
             </a>
-            <a href="/admin" class="text-sm text-muted-foreground hover:text-[#d63a2e]">Attendees</a>
+            <a href="/admin" class="text-sm text-muted-foreground hover:text-primary">Attendees</a>
           </div>
         </div>
       </div>
@@ -33,7 +33,7 @@ import Layout from '../../../layouts/Layout.astro';
             id="name"
             name="name"
             required
-            class="w-full rounded border border-input bg-background px-3 py-2 text-foreground focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
+            class="w-full rounded border border-input bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="e.g. Summer Party 2024"
           />
         </div>
@@ -43,7 +43,7 @@ import Layout from '../../../layouts/Layout.astro';
             type="text"
             id="slug"
             name="slug"
-            class="w-full rounded border border-input bg-background px-3 py-2 text-foreground focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
+            class="w-full rounded border border-input bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="e.g. summer-party-2024"
           />
           <p class="mt-1 text-xs text-muted-foreground">Used in webhooks and URLs. Lowercase, no spaces.</p>
@@ -54,15 +54,15 @@ import Layout from '../../../layouts/Layout.astro';
             type="url"
             id="micrositeUrl"
             name="micrositeUrl"
-            class="w-full rounded border border-input bg-background px-3 py-2 text-foreground focus:border-[#d63a2e] focus:outline-none focus:ring-1 focus:ring-[#d63a2e]"
+            class="w-full rounded border border-input bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="https://..."
           />
         </div>
-        <div id="form-error" class="hidden text-sm text-red-600"></div>
+        <div id="form-error" class="hidden text-sm text-[var(--red-11)]"></div>
         <div class="flex gap-3">
           <button
             type="submit"
-            class="rounded bg-[#d63a2e] px-4 py-2 text-sm font-medium text-white hover:bg-[#c2352a] disabled:opacity-50"
+            class="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
           >
             Create event
           </button>
