@@ -556,7 +556,7 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
         </div>
       )}
       {manualResults.length > 0 && (
-        <ul className="space-y-2 max-h-48 overflow-y-auto rounded-md border border-border bg-muted/50 p-2">
+        <ul className="space-y-2 max-h-48 overflow-y-auto rounded-md border border-border bg-muted/50 p-2 max-md:mb-8">
           {manualResults.map((a) => (
             <li
               key={a.id}
