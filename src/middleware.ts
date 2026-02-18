@@ -38,6 +38,7 @@ function isStaffOnlyApi(pathname: string, method: string): boolean {
   if (pathname === '/api/attendees/import' && method === 'POST') return true;
   if (pathname === '/api/attendees/export' && method === 'GET') return true;
   if (pathname.startsWith('/api/events')) return true;
+  if (pathname === '/api/update-last-event' && method === 'POST') return true;
   return false;
 }
 

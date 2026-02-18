@@ -369,6 +369,38 @@ export async function createEvent(data: {
   return { id, ...data };
 }
 
+/** Get staff user's last selected event ID. Returns null if none stored. */
+export async function getStaffLastEventId(userId: string): Promise<string | null> {
+  if (!userId) return null;
+  const db = getDb();
+  const rows = await db`
+    SELECT last_selected_event_id FROM staff_preferences WHERE user_id = ${userId}
+  `;
+  return rows.length && rows[0].last_selected_event_id
+    ? String(rows[0].last_selected_event_id)
+    : null;
+}
+
+/** Update staff user's last selected event. */
+export async function updateStaffLastEventId(
+  userId: string,
+  eventId: string | null
+): Promise<void> {
+  if (!userId) return;
+  const db = getDb();
+  if (eventId) {
+    await db`
+      INSERT INTO staff_preferences (user_id, last_selected_event_id)
+      VALUES (${userId}, ${eventId})
+      ON CONFLICT (user_id) DO UPDATE SET last_selected_event_id = ${eventId}
+    `;
+  } else {
+    await db`
+      UPDATE staff_preferences SET last_selected_event_id = NULL WHERE user_id = ${userId}
+    `;
+  }
+}
+
 /** Delete an event and all its attendees. */
 export async function deleteEvent(id: string): Promise<boolean> {
   const db = getDb();

@@ -17,7 +17,7 @@ interface AdminPageProps {
   initialAttendees?: Attendee[];
   /** Events for selector. */
   events?: EventOption[];
-  /** Pre-selected event ID from URL ?event= */
+  /** Pre-selected event ID (URL param or DB lastSelectedEventId). */
   selectedEventId?: string;
 }
 
@@ -26,9 +26,11 @@ export function AdminPage({
   events = [],
   selectedEventId = '',
 }: AdminPageProps) {
+  // Server passes selectedEventId (URL > DB). Use as initial state.
+  const [eventId, setEventId] = useState(selectedEventId || '');
+  
   const [attendees, setAttendees] = useState<Attendee[]>(initialAttendees);
-  const [eventId, setEventId] = useState(selectedEventId);
-  const [loading, setLoading] = useState(Boolean(selectedEventId && !initialAttendees.length));
+  const [loading, setLoading] = useState(Boolean(eventId && !initialAttendees.length));
   const [error, setError] = useState<string | null>(null);
 
   const loadAttendees = useCallback(async (eid?: string, options?: { silent?: boolean }) => {
@@ -60,8 +62,11 @@ export function AdminPage({
     }
   }, []);
 
+  // Sync with server value when it changes (e.g., URL param or navigation)
   useEffect(() => {
-    setEventId(selectedEventId);
+    if (selectedEventId !== eventId) {
+      setEventId(selectedEventId);
+    }
   }, [selectedEventId]);
 
   useEffect(() => {
@@ -73,10 +78,22 @@ export function AdminPage({
     loadAttendees(eventId);
   }, [eventId, loadAttendees]);
 
-  const onEventSelect = (eventId: string) => {
+  const onEventSelect = async (newEventId: string) => {
+    // Persist to DB so selection survives logout/login and works across devices
+    try {
+      await fetch('/api/update-last-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: newEventId || null }),
+      });
+    } catch {
+      // Non-blocking; page will still work
+    }
+
+    // Update URL for shareability
     const params = new URLSearchParams(window.location.search);
-    if (eventId) {
-      params.set('event', eventId);
+    if (newEventId) {
+      params.set('event', newEventId);
     } else {
       params.delete('event');
     }

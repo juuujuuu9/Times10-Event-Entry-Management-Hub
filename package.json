@@ -13,6 +13,7 @@
     "setup-db": "node scripts/setup-tables.mjs",
     "migrate-qr": "node scripts/migrate-qr-security.mjs",
     "migrate-events": "node scripts/migrate-events.mjs",
+    "migrate-staff-preferences": "node scripts/migrate-staff-preferences.mjs",
     "wipe-events": "node scripts/wipe-events.mjs"
   },
   "dependencies": {

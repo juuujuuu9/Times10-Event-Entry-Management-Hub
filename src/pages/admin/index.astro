@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { AdminPage } from '../../components/AdminPage';
 import { ThemeToggle } from '../../components/ThemeToggle';
-import { getAllEvents } from '../../lib/db';
+import { getAllEvents, getStaffLastEventId, getEventById } from '../../lib/db';
 import { getSignOutUrl, getSignOutFormProps } from '../../lib/auth-url';
 
 const { user } = Astro.locals;
@@ -10,17 +10,27 @@ let signOutUrl = '/api/auth/signout?callbackUrl=/';
 let signOutForm: { action: string; callbackUrl: string; csrfToken: string } | null = null;
 let events: { id: string; name: string; slug: string }[] = [];
 let pageError = '';
+let lastSelectedEventId = '';
 
 try {
   signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
   signOutForm = await getSignOutFormProps(Astro.request);
   const rows = await getAllEvents();
   events = rows.map((e) => ({ id: String(e.id), name: String(e.name), slug: String(e.slug) }));
+  if (user?.id) {
+    const raw = await getStaffLastEventId(user.id);
+    // Safety: if event was deleted (or soft-deleted), don't use stale ref
+    if (raw) {
+      const event = await getEventById(raw);
+      lastSelectedEventId = event?.id ?? '';
+    }
+  }
 } catch (err) {
   console.error('[admin] page setup failed:', err);
   pageError = err instanceof Error ? err.message : 'Failed to load page';
 }
-const selectedEventId = Astro.url.searchParams.get('event') ?? '';
+const urlEventId = Astro.url.searchParams.get('event') ?? '';
+const selectedEventId = urlEventId || lastSelectedEventId;
 ---
 
 <Layout title="Admin Dashboard">
