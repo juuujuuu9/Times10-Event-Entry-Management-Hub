@@ -263,13 +263,6 @@ export function AdminDashboard({
         </Card>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
-        <Button onClick={onRefresh} variant="outline">
-          <RotateCcw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
-
       <Card>
         <CardHeader className="flex flex-col gap-4">
           <div>
@@ -278,8 +271,8 @@ export function AdminDashboard({
               {filteredAttendees.length} of {attendees.length} attendees
             </CardDescription>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
-            <div className="relative w-full sm:flex-1 sm:min-w-0">
+          <div className="flex flex-row items-center gap-2 sm:gap-4 w-full">
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
               <Input
                 ref={searchInputRef}
@@ -292,8 +285,13 @@ export function AdminDashboard({
                 <span className="text-[10px]">⌘</span>K
               </kbd>
             </div>
-            <div className="hidden sm:flex items-center gap-2 shrink-0 sm:ml-auto">
-              <span className="text-xs text-muted-foreground">Density:</span>
+            <div className="flex items-center gap-4 shrink-0 sm:ml-auto">
+              <Button onClick={onRefresh} variant="outline" size="sm">
+                <RotateCcw className="h-4 w-4 mr-1.5" />
+                Refresh
+              </Button>
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Density:</span>
               <div className="flex rounded-md border overflow-hidden">
                 <button
                   type="button"
@@ -317,6 +315,7 @@ export function AdminDashboard({
                 >
                   Compact
                 </button>
+              </div>
               </div>
             </div>
           </div>

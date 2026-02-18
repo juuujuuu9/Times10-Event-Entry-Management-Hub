@@ -98,7 +98,7 @@ export function AdminPage({
           </div>
           <a
             href="/admin/events"
-            className="rounded border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="rounded border border-border bg-muted px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
           >
             Manage events
           </a>
@@ -107,6 +107,28 @@ export function AdminPage({
             className="text-sm text-primary hover:underline"
           >
             + New event
+          </a>
+          <a
+            href="/"
+            className="ml-auto inline-flex items-center gap-2 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+          >
+            <svg
+              className="h-5 w-5 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M13,11V7h4v4Zm4,6V15H15v2ZM7,13v4h4V13ZM7,7V9H9V7Z" />
+              <path d="M21,8V4a1,1,0,0,0-1-1H16" />
+              <path d="M16,21h4a1,1,0,0,0,1-1V16" />
+              <path d="M8,3H4A1,1,0,0,0,3,4V8" />
+              <path d="M3,16v4a1,1,0,0,0,1,1H8" />
+            </svg>
+            Scan
           </a>
         </div>
       )}

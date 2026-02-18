@@ -37,8 +37,6 @@ const selectedEventId = Astro.url.searchParams.get('event') ?? '';
               </div>
               <span class="font-bold text-foreground">Admin</span>
             </a>
-            <a href="/" class="text-sm text-muted-foreground hover:text-primary">Scanner</a>
-            <a href="/admin/events" class="text-sm text-muted-foreground hover:text-primary">Events</a>
           </div>
           <div class="flex items-center gap-4">
             <ThemeToggle client:load />
