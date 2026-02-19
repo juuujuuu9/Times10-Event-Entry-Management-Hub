@@ -254,6 +254,29 @@ if (eventId) {
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      // If bulk email dialog is open, Enter in inputs submits parent form — handle it here instead of re-importing
+      if (bulkDialog?.open && dialogSend && fromNameInput && eventNameInput) {
+        const from = fromNameInput.value.trim();
+        const evName = eventNameInput.value.trim();
+        if (!from) {
+          if (dialogError) {
+            dialogError.textContent = 'Please enter a From name.';
+            dialogError.classList.remove('hidden');
+          }
+          return;
+        }
+        if (!evName) {
+          if (dialogError) {
+            dialogError.textContent = 'Please enter an Event name.';
+            dialogError.classList.remove('hidden');
+          }
+          return;
+        }
+        executeBulkSend(from, evName);
+        return;
+      }
+
       if (!errorEl || !successEl || !submitBtn || !fileInput?.files?.length) return;
       errorEl.classList.add('hidden');
       successEl.classList.add('hidden');
