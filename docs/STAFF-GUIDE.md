@@ -11,7 +11,7 @@ Scan QR codes to check in attendees as they arrive. If QR scanning fails, use ma
 1. **Open the scanner page** on your phone
 2. **Tap "Start Scanning"**
 3. **Allow camera access** if prompted
-4. **Test it** — scan your own QR code
+4. **Test it** — scan your own QR code, or use the [Demo Codes](/demo-codes) page (Green/Yellow/Red test codes)
 
 ---
 

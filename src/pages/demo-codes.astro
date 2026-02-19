@@ -1,0 +1,71 @@
+---
+import ScannerLayout from '../layouts/ScannerLayout.astro';
+import QRCode from 'qrcode';
+
+const DEMO_SUCCESS = 'DEMO-SUCCESS';
+const DEMO_ALREADY = 'DEMO-ALREADY';
+const DEMO_INVALID = 'DEMO-INVALID';
+
+const qrOptions = { width: 180, margin: 2, color: { dark: '#000000', light: '#ffffff' } };
+const successDataUrl = await QRCode.toDataURL(DEMO_SUCCESS, qrOptions);
+const alreadyDataUrl = await QRCode.toDataURL(DEMO_ALREADY, qrOptions);
+const invalidDataUrl = await QRCode.toDataURL(DEMO_INVALID, qrOptions);
+---
+
+<ScannerLayout>
+  <div class="min-h-screen bg-background p-4 sm:p-6">
+    <main class="max-w-lg mx-auto">
+      <h1 class="text-xl font-semibold text-foreground mb-1">Demo QR Codes</h1>
+      <p class="text-sm text-muted-foreground mb-6">Scan these codes at the scanner page to test Green, Yellow, and Red feedback. Staff only.</p>
+
+      <div class="space-y-6">
+        <section class="rounded-lg border border-border bg-card p-4">
+          <div class="flex items-center gap-4">
+            <div class="shrink-0 w-[100px] h-[100px] rounded border border-border bg-muted flex items-center justify-center">
+              <img src={successDataUrl} alt="Demo success" class="w-[90px] h-[90px] object-contain" width="90" height="90" />
+            </div>
+            <div>
+              <h2 class="font-medium text-foreground flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-green-500" aria-hidden="true"></span>
+                Always Success (Green)
+              </h2>
+              <p class="text-sm text-muted-foreground mt-0.5">Useful for testing the success beep and confirmation flow.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-lg border border-border bg-card p-4">
+          <div class="flex items-center gap-4">
+            <div class="shrink-0 w-[100px] h-[100px] rounded border border-border bg-muted flex items-center justify-center">
+              <img src={alreadyDataUrl} alt="Demo already checked in" class="w-[90px] h-[90px] object-contain" width="90" height="90" />
+            </div>
+            <div>
+              <h2 class="font-medium text-foreground flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-amber-500" aria-hidden="true"></span>
+                Always Already Checked In (Yellow)
+              </h2>
+              <p class="text-sm text-muted-foreground mt-0.5">Useful for testing the duplicate-scan / already-in-system feedback.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-lg border border-border bg-card p-4">
+          <div class="flex items-center gap-4">
+            <div class="shrink-0 w-[100px] h-[100px] rounded border border-border bg-muted flex items-center justify-center">
+              <img src={invalidDataUrl} alt="Demo invalid" class="w-[90px] h-[90px] object-contain" width="90" height="90" />
+            </div>
+            <div>
+              <h2 class="font-medium text-foreground flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500" aria-hidden="true"></span>
+                Always Invalid (Red)
+              </h2>
+              <p class="text-sm text-muted-foreground mt-0.5">Useful for testing the invalid/error feedback.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <p class="text-xs text-muted-foreground mt-8">Open the scanner page on another device or tab, then scan these codes. They return canned responses and never modify the database.</p>
+    </main>
+  </div>
+</ScannerLayout>

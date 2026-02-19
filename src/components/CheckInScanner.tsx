@@ -541,12 +541,21 @@ export function CheckInScanner({ onCheckIn, standalone = false, eventId }: Check
         </Button>
       )}
       {standalone && (
-        <Button variant="outline" size="lg" className="w-full" asChild>
-          <a href="/admin">
-            <LayoutDashboard className="h-4 w-4 mr-2" />
-            Dashboard
+        <>
+          <Button variant="outline" size="lg" className="w-full" asChild>
+            <a href="/admin">
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              Dashboard
+            </a>
+          </Button>
+          <a
+            href="/demo-codes"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 mt-1"
+          >
+            <QrCode className="h-3.5 w-3.5" />
+            Demo codes
           </a>
-        </Button>
+        </>
       )}
     </div>
   );

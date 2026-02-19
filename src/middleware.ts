@@ -18,7 +18,7 @@ const PUBLIC_PATH_PATTERNS = [
   /^\/favicon\.(ico|png|svg)$/,
 ];
 
-const STAFF_PAGE_PATTERNS = [/^\/$/, /^\/admin(\/|$)/, /^\/scanner(\/|$)/];
+const STAFF_PAGE_PATTERNS = [/^\/$/, /^\/admin(\/|$)/, /^\/scanner(\/|$)/, /^\/demo-codes(\/|$)/];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATH_PATTERNS.some((p) => p.test(pathname));
