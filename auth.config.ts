@@ -34,8 +34,13 @@ export default defineConfig({
   ],
   callbacks: {
     redirect({ url, baseUrl }) {
-      // Use AUTH_URL/NEXTAUTH_URL when set so redirects never go to localhost on Vercel.
-      const productionUrl = authUrl ?? baseUrl;
+      // Read at request time — module-level authUrl can be undefined if config ran at build.
+      const runtimeAuthUrl =
+        (typeof process !== 'undefined' && (process.env?.AUTH_URL || process.env?.NEXTAUTH_URL)) ||
+        (typeof process !== 'undefined' &&
+          process.env?.VERCEL_URL &&
+          `https://${process.env.VERCEL_URL}`);
+      const productionUrl = runtimeAuthUrl ?? authUrl ?? baseUrl;
       const origin = productionUrl ? new URL(productionUrl).origin : baseUrl;
       if (url.startsWith('/')) return `${origin}${url}`;
       try {

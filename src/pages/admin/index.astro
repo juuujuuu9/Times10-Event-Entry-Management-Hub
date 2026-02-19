@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import { AdminPage } from '../../components/AdminPage';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { getAllEvents, getStaffLastEventId, getEventById } from '../../lib/db';
-import { getSignOutUrl, getSignOutFormProps, getCanonicalOriginDebug } from '../../lib/auth-url';
+import { getSignOutUrl, getSignOutFormProps } from '../../lib/auth-url';
 
 const { user } = Astro.locals;
 let signOutUrl = '/api/auth/signout?callbackUrl=/';
@@ -11,42 +11,10 @@ let signOutForm: { action: string; callbackUrl: string; csrfToken: string } | nu
 let events: { id: string; name: string; slug: string }[] = [];
 let pageError = '';
 let lastSelectedEventId = '';
-// #region agent log — debug signout redirect (hypotheses A–E)
-let debugAuth: {
-  canonicalOrigin: string;
-  originSource: string;
-  astroUrlOrigin: string;
-  signOutUrl: string;
-  usingForm: boolean;
-  formCallbackUrl: string | null;
-  authUrlSet: boolean;
-} = {
-  canonicalOrigin: '',
-  originSource: '',
-  astroUrlOrigin: Astro.url.origin,
-  signOutUrl: '',
-  usingForm: false,
-  formCallbackUrl: null,
-  authUrlSet: false,
-};
-// #endregion
 
 try {
   signOutUrl = getSignOutUrl(Astro.request, Astro.url.origin);
   signOutForm = await getSignOutFormProps(Astro.request);
-  const originDebug = getCanonicalOriginDebug(Astro.request, Astro.url.origin);
-  debugAuth = {
-    canonicalOrigin: originDebug.origin,
-    originSource: originDebug.source,
-    astroUrlOrigin: Astro.url.origin,
-    signOutUrl,
-    usingForm: !!signOutForm,
-    formCallbackUrl: signOutForm?.callbackUrl ?? null,
-    authUrlSet: !!(
-      (typeof process !== 'undefined' && (process.env?.AUTH_URL || process.env?.NEXTAUTH_URL)) ||
-      (typeof process !== 'undefined' && process.env?.VERCEL_URL)
-    ),
-  };
   const rows = await getAllEvents();
   events = rows.map((e) => ({ id: String(e.id), name: String(e.name), slug: String(e.slug) }));
   if (user?.id) {
@@ -66,25 +34,6 @@ const selectedEventId = urlEventId || lastSelectedEventId;
 ---
 
 <Layout title="Attendees | Times10">
-  <!-- #region agent log - inspect in DevTools to debug signout localhost redirect -->
-  <div
-    id="debug-signout"
-    data-canonical-origin={debugAuth.canonicalOrigin}
-    data-origin-source={debugAuth.originSource}
-    data-astro-origin={debugAuth.astroUrlOrigin}
-    data-signout-url={debugAuth.signOutUrl}
-    data-using-form={String(debugAuth.usingForm)}
-    data-form-callback-url={debugAuth.formCallbackUrl ?? ''}
-    data-auth-url-set={String(debugAuth.authUrlSet)}
-    aria-hidden="true"
-    style="display:none"
-  />
-  <!-- #endregion -->
-  <script define:vars={{ debugAuth }}>
-    if (typeof window !== 'undefined' && new URL(window.location.href).searchParams.get('debug') === '1') {
-      console.log('[debug-signout]', debugAuth);
-    }
-  </script>
   <div class="min-h-screen bg-background">
     <header class="bg-card border-b border-border sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
