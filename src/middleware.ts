@@ -15,7 +15,7 @@ const PUBLIC_PATH_PATTERNS = [
   /^\/login$/,
   /^\/api\/auth\//,
   /^\/_astro\//,
-  /^\/favicon\.(ico|svg)$/,
+  /^\/favicon\.(ico|png|svg)$/,
 ];
 
 const STAFF_PAGE_PATTERNS = [/^\/$/, /^\/admin(\/|$)/, /^\/scanner(\/|$)/];
