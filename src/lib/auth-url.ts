@@ -20,6 +20,25 @@ export function getCanonicalOrigin(request?: Request, fallbackOrigin?: string): 
   return fallbackOrigin ?? '';
 }
 
+/** Debug: returns which source provided the origin (for production troubleshooting). */
+export function getCanonicalOriginDebug(
+  request?: Request,
+  fallbackOrigin?: string
+): { origin: string; source: string } {
+  const authUrl =
+    (typeof process !== 'undefined' && (process.env?.AUTH_URL || process.env?.NEXTAUTH_URL)) ||
+    (typeof import.meta !== 'undefined' && ((import.meta.env?.AUTH_URL as string) || (import.meta.env?.NEXTAUTH_URL as string))) ||
+    (typeof process !== 'undefined' && process.env?.VERCEL_URL && `https://${process.env.VERCEL_URL}`);
+  if (authUrl) return { origin: new URL(authUrl).origin, source: 'AUTH_URL_or_VERCEL' };
+  if (request) {
+    const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
+    const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+    if (host && !host.includes('localhost'))
+      return { origin: `${proto}://${host.split(',')[0].trim()}`, source: 'request_headers' };
+  }
+  return { origin: fallbackOrigin ?? '', source: 'fallback_or_empty' };
+}
+
 /**
  * Relative sign-out path with callbackUrl. Always use relative URL so the browser
  * never navigates to an absolute localhost URL (Vercel can set Astro.url.origin to localhost).
